@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamFlix - Video Player with Dual Audio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff0050;
+        }
+        
+        .logo i {
+            font-size: 32px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .player-section {
+            flex: 2;
+            min-width: 300px;
+        }
+        
+        .movies-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .video-container {
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        #video-player {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .player-controls {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .audio-selector {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 0 0 10px 10px;
+            margin-top: -5px;
+        }
+        
+        .audio-selector h3 {
+            margin-bottom: 10px;
+            color: #ff0050;
+        }
+        
+        .audio-tracks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .audio-track-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .audio-track-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .audio-track-btn.active {
+            background: #ff0050;
+            border-color: #ff0050;
+        }
+        
+        .custom-url {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .custom-url h3 {
+            margin-bottom: 10px;
+            color: #00c3ff;
+        }
+        
+        .url-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .url-input input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .url-input button {
+            background: #00c3ff;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .url-input button:hover {
+            background: #0099cc;
+        }
+        
+        .movies-section h2 {
+            margin-bottom: 20px;
+            color: #ff0050;
+            font-size: 24px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .movie-list {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .movie-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .movie-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .movie-item.active {
+            background: rgba(255, 0, 80, 0.2);
+            border-left: 4px solid #ff0050;
+        }
+        
+        .movie-item img {
+            width: 60px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .movie-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .movie-info p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .page-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-btn.active {
+            background: #ff0050;
+            border-color: #ff0050;
+        }
+        
+        .footer-info {
+            margin-top: 30px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        
+        .instructions h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .instructions code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .url-input {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-film"></i>
+                <span>StreamFlix</span>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="player-section">
+                <div class="video-container">
+                    <video id="video-player" controls>
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                        <!-- Audio tracks will be added dynamically -->
+                        <track kind="captions" label="English">
+                        Your browser does not support the video tag.
+                    </video>
+                    
+                    <div class="player-controls">
+                        <div>
+                            <button class="control-btn" id="play-pause"><i class="fas fa-play"></i></button>
+                            <button class="control-btn" id="mute-unmute"><i class="fas fa-volume-up"></i></button>
+                            <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
+                        </div>
+                        <div>
+                            <button class="control-btn" id="fullscreen"><i class="fas fa-expand"></i></button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="audio-selector">
+                    <h3><i class="fas fa-language"></i> Select Audio Track</h3>
+                    <div class="audio-tracks" id="audio-tracks">
+                        <!-- Audio track buttons will be generated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="custom-url">
+                    <h3><i class="fas fa-link"></i> Stream from Custom URL</h3>
+                    <div class="url-input">
+                        <input type="text" id="video-url" placeholder="Enter MP4 video URL...">
+                        <button id="load-video">Load Video</button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 14px; color: rgba(255,255,255,0.7);">
+                        Enter a direct link to any MP4 video file. For dual audio, the video must have multiple audio tracks embedded.
+                    </p>
+                </div>
+                
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> How to Add More Movies</h3>
+                    <ol>
+                        <li>Open the HTML file in a text editor</li>
+                        <li>Find the <code>movieList</code> array in the JavaScript section (around line 250)</li>
+                        <li>Add new movie objects following this format:<br>
+                            <code>{id: 10, title: "Movie Title", year: "2023", duration: "2h 15m", poster: "image-url.jpg", videoUrl: "video-url.mp4", audioTracks: 2}</code>
+                        </li>
+                        <li>Save the file and refresh the page</li>
+                        <li>Movies will automatically appear in the list with pagination</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="movies-section">
+                <h2><i class="fas fa-video"></i> Movie Library</h2>
+                <div class="movie-list" id="movie-list">
+                    <!-- Movie list will be generated dynamically -->
+                </div>
+                
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be generated dynamically -->
+                </div>
+                
+                <div class="footer-info">
+                    <p>StreamFlix supports MP4 videos with multiple audio tracks. For best results, use modern browsers like Chrome, Firefox, or Edge.</p>
+                    <p style="margin-top: 10px;">Sample videos provided for demonstration purposes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Movie data - you can add more movies here
+        const movieList = [
+            {id: 1, title: "Big Buck Bunny", year: "2008", duration: "10m", poster: "https://peach.blender.org/wp-content/uploads/bbb-splash.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", audioTracks: 2},
+            {id: 2, title: "Elephant Dream", year: "2006", duration: "11m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", audioTracks: 1},
+            {id: 3, title: "For Bigger Blazes", year: "2013", duration: "15m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", audioTracks: 2},
+            {id: 4, title: "For Bigger Escape", year: "2014", duration: "15m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", audioTracks: 1},
+            {id: 5, title: "For Bigger Fun", year: "2015", duration: "30m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", audioTracks: 2},
+            {id: 6, title: "For Bigger Joyrides", year: "2016", duration: "12m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", audioTracks: 1},
+            {id: 7, title: "For Bigger Meltdowns", year: "2017", duration: "20m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", audioTracks: 2},
+            {id: 8, title: "Sintel", year: "2010", duration: "15m", poster: "https://www.blender.org/wp-content/uploads/2013/07/sintel_poster.jpg", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", audioTracks: 2},
+            {id: 9, title: "Tears of Steel", year: "2012", duration: "12m", poster: "https://mango.blender.org/wp-content/uploads/2013/05/tears_of_steel_bridge.jpg", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", audioTracks: 1},
+            {id: 10, title: "Volkswagen Nostalgia", year: "2014", duration: "1m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4", audioTracks: 2},
+            {id: 11, title: "We Are Going On Bullrun", year: "2015", duration: "2m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4", audioTracks: 1},
+            {id: 12, title: "What Car Can You Get", year: "2016", duration: "2m", poster: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.png", videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4", audioTracks: 2}
+        ];
+
+        // DOM Elements
+        const videoPlayer = document.getElementById('video-player');
+        const playPauseBtn = document.getElementById('play-pause');
+        const muteUnmuteBtn = document.getElementById('mute-unmute');
+        const fullscreenBtn = document.getElementById('fullscreen');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+        const audioTracksContainer = document.getElementById('audio-tracks');
+        const videoUrlInput = document.getElementById('video-url');
+        const loadVideoBtn = document.getElementById('load-video');
+        const movieListContainer = document.getElementById('movie-list');
+        const paginationContainer = document.getElementById('pagination');
+
+        // Variables
+        let currentPage = 1;
+        const moviesPerPage = 7;
+        let audioTracksCount = 2;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up initial video
+            setupAudioTracks(2);
+            updateTimeDisplay();
+            
+            // Load movie list
+            renderMovieList();
+            renderPagination();
+            
+            // Set up event listeners
+            setupEventListeners();
+        });
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Play/Pause button
+            playPauseBtn.addEventListener('click', function() {
+                if (videoPlayer.paused) {
+                    videoPlayer.play();
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    videoPlayer.pause();
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            });
+
+            // Video play/pause events
+            videoPlayer.addEventListener('play', function() {
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            });
+
+            videoPlayer.addEventListener('pause', function() {
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            });
+
+            // Mute/Unmute button
+            muteUnmuteBtn.addEventListener('click', function() {
+                videoPlayer.muted = !videoPlayer.muted;
+                muteUnmuteBtn.innerHTML = videoPlayer.muted ? 
+                    '<i class="fas fa-volume-mute"></i>' : 
+                    '<i class="fas fa-volume-up"></i>';
+            });
+
+            // Fullscreen button
+            fullscreenBtn.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    if (videoPlayer.requestFullscreen) {
+                        videoPlayer.requestFullscreen();
+                    } else if (videoPlayer.webkitRequestFullscreen) {
+                        videoPlayer.webkitRequestFullscreen();
+                    } else if (videoPlayer.msRequestFullscreen) {
+                        videoPlayer.msRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+            });
+
+            // Update time display as video plays
+            videoPlayer.addEventListener('timeupdate', updateTimeDisplay);
+
+            // Update total time when metadata is loaded
+            videoPlayer.addEventListener('loadedmetadata', updateTimeDisplay);
+
+            // Load video from URL
+            loadVideoBtn.addEventListener('click', loadCustomVideo);
+
+            // Allow Enter key to load video
+            videoUrlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadCustomVideo();
+                }
+            });
+        }
+
+        // Format time from seconds to MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Update current and total time display
+        function updateTimeDisplay() {
+            currentTimeEl.textContent = formatTime(videoPlayer.currentTime);
+            totalTimeEl.textContent = formatTime(videoPlayer.duration);
+        }
+
+        // Set up audio track buttons
+        function setupAudioTracks(trackCount) {
+            audioTracksCount = trackCount;
+            audioTracksContainer.innerHTML = '';
+            
+            for (let i = 0; i < trackCount; i++) {
+                const trackBtn = document.createElement('button');
+                trackBtn.className = i === 0 ? 'audio-track-btn active' : 'audio-track-btn';
+                trackBtn.textContent = i === 0 ? 'English (Default)' : `Audio Track ${i + 1}`;
+                trackBtn.dataset.track = i;
+                
+                trackBtn.addEventListener('click', function() {
+                    // In a real implementation, this would switch audio tracks
+                    // Since HTML5 video doesn't natively support multiple audio tracks without WebVTT,
+                    // this is a simulated implementation
+                    
+                    // Update active button
+                    document.querySelectorAll('.audio-track-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Show message about audio track change
+                    alert(`Switched to ${this.textContent}. Note: This is a demonstration. In a real implementation with proper multi-track video files, the audio would change.`);
+                });
+                
+                audioTracksContainer.appendChild(trackBtn);
+            }
+        }
+
+        // Load custom video from URL
+        function loadCustomVideo() {
+            const url = videoUrlInput.value.trim();
+            
+            if (!url) {
+                alert('Please enter a valid video URL');
+                return;
+            }
+            
+            // Check if it's an MP4 file
+            if (!url.toLowerCase().endsWith('.mp4')) {
+                if (!confirm('The URL does not end with .mp4. Are you sure this is an MP4 video file?')) {
+                    return;
+                }
+            }
+            
+            // Reset active movie
+            document.querySelectorAll('.movie-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Change video source
+            videoPlayer.src = url;
+            videoPlayer.load();
+            
+            // Reset to first audio track
+            setupAudioTracks(2); // Assume 2 tracks for custom URLs
+            
+            // Update UI
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            
+            // Clear input
+            videoUrlInput.value = '';
+            
+            // Show success message
+            alert('Video loaded successfully! If the video has multiple audio tracks, they will appear above.');
+        }
+
+        // Render movie list for current page
+        function renderMovieList() {
+            movieListContainer.innerHTML = '';
+            
+            const startIndex = (currentPage - 1) * moviesPerPage;
+            const endIndex = Math.min(startIndex + moviesPerPage, movieList.length);
+            const moviesToShow = movieList.slice(startIndex, endIndex);
+            
+            moviesToShow.forEach(movie => {
+                const movieItem = document.createElement('div');
+                movieItem.className = 'movie-item';
+                movieItem.dataset.id = movie.id;
+                
+                movieItem.innerHTML = `
+                    <img src="${movie.poster}" alt="${movie.title}">
+                    <div class="movie-info">
+                        <h4>${movie.title}</h4>
+                        <p>${movie.year} • ${movie.duration} • ${movie.audioTracks} audio track(s)</p>
+                    </div>
+                `;
+                
+                movieItem.addEventListener('click', function() {
+                    // Set active movie
+                    document.querySelectorAll('.movie-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Load movie
+                    loadMovie(movie);
+                });
+                
+                movieListContainer.appendChild(movieItem);
+            });
+            
+            // Mark first movie as active if none is active
+            if (!document.querySelector('.movie-item.active') && moviesToShow.length > 0) {
+                const firstMovie = movieListContainer.querySelector('.movie-item');
+                if (firstMovie) firstMovie.classList.add('active');
+            }
+        }
+
+        // Render pagination buttons
+        function renderPagination() {
+            paginationContainer.innerHTML = '';
+            
+            const totalPages = Math.ceil(movieList.length / moviesPerPage);
+            
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderMovieList();
+                    renderPagination();
+                }
+            });
+            paginationContainer.appendChild(prevBtn);
+            
+            // Page buttons
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = i === currentPage ? 'page-btn active' : 'page-btn';
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', function() {
+                    currentPage = i;
+                    renderMovieList();
+                    renderPagination();
+                });
+                paginationContainer.appendChild(pageBtn);
+            }
+            
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderMovieList();
+                    renderPagination();
+                }
+            });
+            paginationContainer.appendChild(nextBtn);
+        }
+
+        // Load a movie into the player
+        function loadMovie(movie) {
+            videoPlayer.src = movie.videoUrl;
+            videoPlayer.load();
+            
+            // Set up audio tracks based on movie data
+            setupAudioTracks(movie.audioTracks);
+            
+            // Update UI
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            
+            // Auto-play the video
+            videoPlayer.play().catch(e => {
+                console.log("Autoplay prevented:", e);
+                // If autoplay is prevented, show play button
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            });
+        }
+
+        // Example of how to add more movies dynamically
+        // You can add this function to your code and call it with new movie data
+        function addNewMovie(title, year, duration, poster, videoUrl, audioTracks = 2) {
+            const newId = movieList.length + 1;
+            const newMovie = {
+                id: newId,
+                title: title,
+                year: year,
+                duration: duration,
+                poster: poster,
+                videoUrl: videoUrl,
+                audioTracks: audioTracks
+            };
+            
+            movieList.push(newMovie);
+            renderMovieList();
+            renderPagination();
+            
+            console.log(`Movie "${title}" added successfully!`);
+        }
+
+        // Example of adding a movie (uncomment to use)
+        // addNewMovie(
+        //     "Sample Movie", 
+        //     "2023", 
+        //     "2h 5m", 
+        //     "https://via.placeholder.com/60x80/FF0050/ffffff?text=Movie", 
+        //     "https://example.com/sample-video.mp4", 
+        //     2
+        // );
+    </script>
+</body>
+  </html>
