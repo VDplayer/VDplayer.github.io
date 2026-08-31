@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Food Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .login-box {
+            background: white; padding: 40px; border-radius: 10px;
+            max-width: 450px; margin: 100px auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .login-box h1 { text-align: center; margin-bottom: 10px; font-size: 24px; color: #333; }
+        .login-box p { text-align: center; color: #666; margin-bottom: 25px; }
+        .input-field {
+            width: 100%; padding: 12px; margin: 10px 0;
+            border: 1px solid #ddd; border-radius: 5px; font-size: 16px;
+        }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 5px;
+            cursor: pointer; color: white; margin: 5px; font-size: 16px;
+            transition: 0.2s;
+        }
+        .btn-primary { background: #4CAF50; }
+        .btn-primary:hover { background: #45a049; }
+        .btn-danger { background: #f44336; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn-warning { background: #ff9800; }
+        .btn-warning:hover { background: #e68900; }
+        .btn-info { background: #2196F3; }
+        .btn-small { padding: 5px 10px; font-size: 12px; }
+
+        .header {
+            background: white; padding: 20px; border-radius: 10px;
+            margin-bottom: 20px; display: flex;
+            justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .summary-cards {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 15px; margin-bottom: 20px;
+        }
+        .card {
+            background: white; padding: 20px; border-radius: 10px;
+            text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
+        .card p { font-size: 24px; font-weight: bold; color: #333; }
+
+        .table-container {
+            background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        thead { background: #4CAF50; color: white; }
+        tbody tr:hover { background: #f5f5f5; }
+
+        .badge {
+            padding: 5px 10px; border-radius: 15px;
+            font-size: 12px; font-weight: bold;
+        }
+        .badge-success { background: #4CAF50; color: white; }
+        .badge-danger { background: #f44336; color: white; }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; }
+        }
+
+        .login-action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .login-action-buttons button {
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-user { background: #4CAF50; color: white; }
+        .btn-admin { background: #f44336; color: white; }
+        .btn-user:hover { background: #45a049; transform: translateY(-2px); }
+        .btn-admin:hover { background: #d32f2f; transform: translateY(-2px); }
+        
+        .admin-password-section {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .admin-password-section input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .admin-password-section button {
+            width: 100%;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .admin-password-section button:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="container">
+        <div class="login-box">
+            <h1>Welcome to Mess Food Management System</h1>
+            <p>Select your access level to continue</p>
+            
+            <div class="login-action-buttons">
+                <button class="btn-user" onclick="loginAsUser()">👤 Enter as User</button>
+                <button class="btn-admin" onclick="toggleAdminPassword()">🔐 Enter as Admin</button>
+            </div>
+
+            <div id="adminPasswordSection" class="admin-password-section">
+                <h3 style="margin-bottom: 15px; color: #333;">Admin Login</h3>
+                <input type="password" id="adminPasswordInput" placeholder="Enter admin password" class="input-field">
+                <button onclick="loginAsAdmin()">Login as Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="container" style="display:none;">
+        <div class="header">
+            <h1>🍽️ Mess Food Management</h1>
+            <div>
+                <span id="loggedUser"></span>
+                <button onclick="logout()" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="card"><h3>Total Members</h3><p id="totalMembers">0</p></div>
+            <div class="card"><h3>Total Paid</h3><p id="totalPaid">৳0</p></div>
+            <div class="card"><h3>Total Cost</h3><p id="totalCost">৳0</p></div>
+            <div class="card"><h3>Total Meals</h3><p id="totalMeals">0</p></div>
+        </div>
+
+        <div id="adminControls" style="display:none; margin-bottom: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <button onclick="calculateAll()" class="btn btn-primary">Calculate All</button>
+            <button onclick="addMember()" class="btn btn-primary">Add Member</button>
+            <button onclick="refreshData()" class="btn btn-warning">Refresh</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Target</th>
+                        <th>Total Paid</th>
+                        <th>Status</th>
+                        <th>Meals</th>
+                        <th>Meal Cost</th>
+                        <th>Monthly Cost</th>
+                        <th>Refund</th>
+                        <th id="actionsHeader" style="display:none;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace with your deployed URL
+        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbyRQBa2TLRFp6yCxatxr3tcLO_3FaAlbUbgCQWmadUe3U9LF7-Dkamj_6Ukb8d3sE2Lfg/exec";
+        const MONTHLY_TARGET = 2300;
+        let currentUser = null;
+        let allMembers = [];
+
+        async function makeRequest(action, params = {}) {
+            const queryString = Object.keys(params)
+                .map(key => `${key}=${encodeURIComponent(params[key])}`)
+                .join('&');
+            const url = `${GOOGLE_SHEETS_URL}?action=${action}${queryString ? '&' + queryString : ''}`;
+            
+            console.log('Request URL:', url);
+            
+            const response = await fetch(url);
+            const text = await response.text();
+            console.log('Response:', text);
+            
+            return JSON.parse(text);
+        }
+
+        // --- LOGIN FUNCTIONS ---
+        function loginAsUser() {
+            currentUser = { name: "Guest User", role: "user" };
+            enterDashboard();
+        }
+
+        function toggleAdminPassword() {
+            const adminSection = document.getElementById('adminPasswordSection');
+            if (adminSection.style.display === 'block') {
+                adminSection.style.display = 'none';
+            } else {
+                adminSection.style.display = 'block';
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+
+        function loginAsAdmin() {
+            const password = document.getElementById('adminPasswordInput').value;
+            
+            if (!password) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Please enter admin password'
+                });
+                return;
+            }
+            
+            if (password === "66!") {
+                currentUser = { name: "Admin", role: "admin" };
+                document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('adminPasswordSection').style.display = 'none';
+                enterDashboard();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Welcome Admin!',
+                    text: 'You have successfully logged in',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Access Denied',
+                    text: 'Wrong admin password. Please try again.'
+                });
+                document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+
+        function enterDashboard() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('loggedUser').textContent = `👤 ${currentUser.name} (${currentUser.role})`;
+            
+            // Show admin controls and actions column only for admin
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminControls').style.display = 'block';
+                document.getElementById('actionsHeader').style.display = 'table-cell';
+            } else {
+                document.getElementById('adminControls').style.display = 'none';
+                document.getElementById('actionsHeader').style.display = 'none';
+            }
+            
+            loadData();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('adminPasswordSection').style.display = 'none';
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        async function loadData() {
+            try {
+                const data = await makeRequest('getAllData');
+                if (Array.isArray(data)) {
+                    allMembers = data;
+                    renderTable();
+                    updateSummary();
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to load data', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Could not connect to Google Sheets', 'error');
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if (allMembers.length === 0) {
+                const colspan = currentUser.role === 'admin' ? 10 : 9;
+                tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">No data available</td></tr>`;
+                return;
+            }
+            
+            allMembers.forEach((member, index) => {
+                const isComplete = member.totalPaid >= MONTHLY_TARGET;
+                const refund = member.totalPaid > member.monthlyCost ? member.totalPaid - member.monthlyCost : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${member.memberName}</strong></td>
+                    <td>৳${MONTHLY_TARGET}</td>
+                    <td>৳${member.totalPaid}</td>
+                    <td>${isComplete ? '<span class="badge badge-success">✓ Complete</span>' : '<span class="badge badge-danger">✗ Incomplete</span>'}</td>
+                    <td>${member.totalMeals}</td>
+                    <td>৳${member.mealCost.toFixed(2)}</td>
+                    <td>৳${member.monthlyCost.toFixed(2)}</td>
+                    <td><strong style="color:#4CAF50;">৳${refund.toFixed(2)}</strong></td>
+                    ${currentUser.role === 'admin' ? `
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-small" onclick="editPayment('${member.memberName}')" title="Add Payment">💰 Payment</button>
+                                <button class="btn btn-warning btn-small" onclick="editMeals('${member.memberName}')" title="Update Meals">🍽️ Meals</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteMember('${member.memberName}')" title="Delete Member">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    ` : ''}
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSummary() {
+            const totalPaid = allMembers.reduce((s, m) => s + m.totalPaid, 0);
+            const totalCost = allMembers.reduce((s, m) => s + m.monthlyCost, 0);
+            const totalMeals = allMembers.reduce((s, m) => s + m.totalMeals, 0);
+            
+            document.getElementById('totalMembers').textContent = allMembers.length;
+            document.getElementById('totalPaid').textContent = `৳${totalPaid}`;
+            document.getElementById('totalCost').textContent = `৳${totalCost}`;
+            document.getElementById('totalMeals').textContent = totalMeals;
+        }
+
+        async function editPayment(memberName) {
+            const { value: amount } = await Swal.fire({
+                title: `Add payment for ${memberName}`,
+                input: 'number',
+                inputLabel: 'Amount (৳)',
+                inputPlaceholder: 'Enter amount',
+                showCancelButton: true,
+                confirmButtonText: 'Add Payment',
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value || value <= 0) {
+                        return 'Please enter a valid amount greater than 0';
+                    }
+                }
+            });
+            
+            if (amount && amount > 0) {
+                const result = await makeRequest('updatePayment', { memberName, amount });
+                if (result.success) {
+                    Swal.fire('Success', result.message, 'success');
+                    await loadData();
+                } else {
+                    Swal.fire('Error', result.message || 'Failed to update payment', 'error');
+                }
+            }
+        }
+
+        async function editMeals(memberName) {
+            const member = allMembers.find(m => m.memberName === memberName);
+            const { value: meals } = await Swal.fire({
+                title: `Update meals for ${memberName}`,
+                input: 'number',
+                inputLabel: 'Number of meals',
+                inputValue: member ? member.totalMeals : 0,
+                inputPlaceholder: 'Enter number of meals',
+                showCancelButton: true,
+                confirmButtonText: 'Update Meals',
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value || value < 0) {
+                        return 'Please enter a valid number of meals';
+                    }
+                }
+            });
+            
+            if (meals !== undefined && meals !== null && meals >= 0) {
+                const result = await makeRequest('updateMeals', { memberName, meals });
+                if (result.success) {
+                    Swal.fire('Success', result.message, 'success');
+                    await loadData();
+                } else {
+                    Swal.fire('Error', result.message || 'Failed to update meals', 'error');
+                }
+            }
+        }
+
+        async function deleteMember(memberName) {
+            const confirm = await Swal.fire({
+                title: 'Delete member?',
+                text: `Are you sure you want to delete ${memberName}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6'
+            });
+            
+            if (confirm.isConfirmed) {
+                const result = await makeRequest('deleteMember', { memberName });
+                if (result.success) {
+                    Swal.fire('Deleted!', result.message, 'success');
+                    await loadData();
+                } else {
+                    Swal.fire('Error', result.message || 'Failed to delete member', 'error');
+                }
+            }
+        }
+
+        async function calculateAll() {
+            const result = await makeRequest('calculateAll');
+            if (result.success) {
+                Swal.fire('Success', result.message, 'success');
+                await loadData();
+            } else {
+                Swal.fire('Error', result.message || 'Calculation failed', 'error');
+            }
+        }
+
+        async function addMember() {
+            const { value: name } = await Swal.fire({
+                title: 'Add new member',
+                input: 'text',
+                inputLabel: 'Member name',
+                inputPlaceholder: 'Enter member name',
+                showCancelButton: true,
+                confirmButtonText: 'Add Member',
+                cancelButtonText: 'Cancel',
+                inputValidator: (value) => {
+                    if (!value || value.trim() === '') {
+                        return 'Please enter a member name';
+                    }
+                }
+            });
+            
+            if (name && name.trim()) {
+                const result = await makeRequest('addMember', { memberName: name.trim() });
+                if (result.success) {
+                    Swal.fire('Success', result.message, 'success');
+                    await loadData();
+                } else {
+                    Swal.fire('Error', result.message || 'Failed to add member', 'error');
+                }
+            }
+        }
+
+        async function refreshData() {
+            await loadData();
+            Swal.fire('Refreshed', 'Data updated successfully', 'success');
+        }
+    </script>
+</body>
+</html>
