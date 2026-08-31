@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>হোস্টেল ফুড ম্যানেজমেন্ট</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            margin: 100px auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-box h1 { text-align: center; color: #333; margin-bottom: 10px; font-size: 24px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        .login-form { display: flex; flex-direction: column; gap: 15px; }
+        .input-field {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            width: 100%;
+        }
+        .input-field:focus { outline: none; border-color: #667eea; }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header h1 { color: #333; font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
+        .card p { color: #333; font-size: 24px; font-weight: bold; }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-primary { background: #667eea; }
+        .btn-success { background: #48bb78; }
+        .btn-danger { background: #f56565; }
+        .btn-warning { background: #ed8936; }
+        .btn-info { background: #4299e1; }
+        .btn-sm { padding: 8px 12px; font-size: 12px; }
+        
+        .admin-controls { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        th { padding: 15px; text-align: left; font-size: 14px; }
+        td { padding: 15px; border-bottom: 1px solid #e0e0e0; }
+        tbody tr:hover { background: #f7fafc; }
+        
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-success { background: #48bb78; color: white; }
+        .badge-danger { background: #f56565; color: white; }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loading-spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .header { flex-direction: column; text-align: center; }
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+            table { font-size: 12px; }
+            th, td { padding: 10px; }
+            .login-box { margin: 50px auto; padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="container">
+        <div class="login-box">
+            <h1>🍽️ হোস্টেল ফুড ম্যানেজমেন্ট</h1>
+            <p class="subtitle">মেস ম্যানেজমেন্ট সিস্টেম</p>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="আপনার নাম লিখুন" class="input-field">
+                <input type="password" id="password" placeholder="পাসওয়ার্ড (ঐচ্ছিক)" class="input-field">
+                <button onclick="login()" class="btn btn-primary">লগইন করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="container" style="display:none;">
+        <header class="header">
+            <h1>🍽️ হোস্টেল ফুড ম্যানেজমেন্ট</h1>
+            <div class="user-info">
+                <span id="loggedUser"></span>
+                <button onclick="logout()" class="btn btn-danger btn-sm">লগআউট</button>
+            </div>
+        </header>
+
+        <div class="summary-cards">
+            <div class="card"><h3>মোট সদস্য</h3><p id="totalMembers">0</p></div>
+            <div class="card"><h3>মোট জমা</h3><p id="totalPaid">৳0</p></div>
+            <div class="card"><h3>মোট খরচ</h3><p id="totalCost">৳0</p></div>
+            <div class="card"><h3>মোট মিল</h3><p id="totalMeals">0</p></div>
+        </div>
+
+        <div id="adminControls" style="display:none;" class="admin-controls">
+            <button onclick="calculateAll()" class="btn btn-success">🔄 Calculate All</button>
+            <button onclick="addMember()" class="btn btn-primary">➕ Add Member</button>
+            <button onclick="refreshData()" class="btn btn-info">🔄 Refresh</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ক্রমিক</th>
+                        <th>নাম</th>
+                        <th>মাসিক লক্ষ্য</th>
+                        <th>মোট জমা</th>
+                        <th>জমা সম্পূর্ণ?</th>
+                        <th>মিল সংখ্যা</th>
+                        <th>প্রতি মিলের খরচ</th>
+                        <th>মাসিক খরচ</th>
+                        <th>ফেরত পাবে</th>
+                        <th>অ্যাকশন</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: Replace this with your deployed Apps Script URL
+        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzbSq8BG2JTfrlkcnWaILuavh-44UhzuVRbPncp4JnSoqizZXiHAROKDk0TfKgn2BYvAA/exec";
+        const MONTHLY_TARGET = 2300;
+        let currentUser = null;
+        let allMembers = [];
+
+        function showLoading() {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = '<div class="loading-spinner"></div>';
+            document.body.appendChild(overlay);
+        }
+
+        function hideLoading() {
+            const overlay = document.querySelector('.loading-overlay');
+            if (overlay) overlay.remove();
+        }
+
+        async function makeRequest(action, params = {}) {
+            const queryString = Object.keys(params)
+                .map(key => `${key}=${encodeURIComponent(params[key])}`)
+                .join('&');
+            const url = `${GOOGLE_SHEETS_URL}?action=${action}${queryString ? '&' + queryString : ''}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username) {
+                Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'নাম লিখুন' });
+                return;
+            }
+            
+            if (password === "66!") {
+                currentUser = { name: "Admin", role: "admin" };
+            } else if (!password) {
+                currentUser = { name: username, role: "user" };
+            } else {
+                Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'ভুল পাসওয়ার্ড' });
+                return;
+            }
+            
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('loggedUser').textContent = `👤 ${currentUser.name} (${currentUser.role})`;
+            document.getElementById('adminControls').style.display = currentUser.role === 'admin' ? 'flex' : 'none';
+            
+            await loadData();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        async function loadData() {
+            try {
+                showLoading();
+                const data = await makeRequest('getAllData');
+                if (Array.isArray(data)) {
+                    allMembers = data;
+                    renderTable();
+                    updateSummary();
+                }
+            } catch (error) {
+                console.error("Load error:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ত্রুটি',
+                    text: 'ডেটা লোড করা যায়নি: ' + error.message
+                });
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function refreshData() {
+            await loadData();
+            Swal.fire({ icon: 'success', title: 'রিফ্রেশ সম্পন্ন', timer: 1500 });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if (allMembers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">কোনো ডেটা নেই</td></tr>';
+                return;
+            }
+            
+            allMembers.forEach((member, index) => {
+                const isComplete = member.totalPaid >= MONTHLY_TARGET;
+                const refund = member.totalPaid > member.monthlyCost ? member.totalPaid - member.monthlyCost : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${member.memberName}</strong></td>
+                    <td>৳${MONTHLY_TARGET}</td>
+                    <td>৳${member.totalPaid}</td>
+                    <td>${isComplete ? '<span class="badge badge-success">✓ সম্পূর্ণ</span>' : '<span class="badge badge-danger">✗ অসম্পূর্ণ</span>'}</td>
+                    <td>${member.totalMeals}</td>
+                    <td>৳${member.mealCost.toFixed(2)}</td>
+                    <td>৳${member.monthlyCost.toFixed(2)}</td>
+                    <td><strong style="color:#48bb78;">৳${refund.toFixed(2)}</strong></td>
+                    <td>
+                        ${currentUser.role === 'admin' ? `
+                            <button class="btn btn-danger btn-sm" onclick="editPayment('${member.memberName}')">💰</button>
+                            <button class="btn btn-warning btn-sm" onclick="editMeals('${member.memberName}')">🍽️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMember('${member.memberName}')">🗑️</button>
+                        ` : '<span>👁️ View Only</span>'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSummary() {
+            const totalPaid = allMembers.reduce((s, m) => s + m.totalPaid, 0);
+            const totalCost = allMembers.reduce((s, m) => s + m.monthlyCost, 0);
+            const totalMeals = allMembers.reduce((s, m) => s + m.totalMeals, 0);
+            
+            document.getElementById('totalMembers').textContent = allMembers.length;
+            document.getElementById('totalPaid').textContent = `৳${totalPaid}`;
+            document.getElementById('totalCost').textContent = `৳${totalCost}`;
+            document.getElementById('totalMeals').textContent = totalMeals;
+        }
+
+        async function editPayment(memberName) {
+            const { value: amount } = await Swal.fire({
+                title: `💰 ${memberName} - টাকা যোগ করুন`,
+                input: 'number',
+                inputLabel: 'টাকার পরিমাণ',
+                inputAttributes: { min: '0', step: '1' },
+                showCancelButton: true,
+                confirmButtonText: 'যোগ করুন',
+                cancelButtonText: 'বাতিল'
+            });
+            
+            if (amount && amount > 0) {
+                try {
+                    showLoading();
+                    await makeRequest('updatePayment', { memberName, amount });
+                    await loadData();
+                    Swal.fire({ icon: 'success', title: 'সফল', text: `৳${amount} যোগ হয়েছে` });
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'সেভ করা যায়নি' });
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+
+        async function editMeals(memberName) {
+            const member = allMembers.find(m => m.memberName === memberName);
+            const { value: meals } = await Swal.fire({
+                title: `🍽️ ${memberName} - মিল সংখ্যা`,
+                input: 'number',
+                inputLabel: 'মোট মিল',
+                inputValue: member.totalMeals,
+                inputAttributes: { min: '1', step: '1' },
+                showCancelButton: true,
+                confirmButtonText: 'আপডেট',
+                cancelButtonText: 'বাতিল'
+            });
+            
+            if (meals && meals > 0) {
+                try {
+                    showLoading();
+                    await makeRequest('updateMeals', { memberName, meals });
+                    await loadData();
+                    Swal.fire({ icon: 'success', title: 'সফল', text: 'মিল আপডেট হয়েছে' });
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'সেভ করা যায়নি' });
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+
+        async function calculateAll() {
+            showLoading();
+            try {
+                await makeRequest('calculateAll');
+                await loadData();
+                Swal.fire({ icon: 'success', title: 'সম্পন্ন', timer: 1500 });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'হিসাব করা যায়নি' });
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function addMember() {
+            const { value: name } = await Swal.fire({
+                title: 'নতুন সদস্য',
+                input: 'text',
+                inputLabel: 'নাম',
+                showCancelButton: true,
+                confirmButtonText: 'যোগ করুন',
+                cancelButtonText: 'বাতিল',
+                inputValidator: (v) => !v ? 'নাম লিখুন!' : undefined
+            });
+            
+            if (name) {
+                try {
+                    showLoading();
+                    await makeRequest('addMember', { memberName: name });
+                    await loadData();
+                    Swal.fire({ icon: 'success', title: 'সফল', text: `${name} যোগ হয়েছে` });
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'যোগ করা যায়নি' });
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+
+        async function deleteMember(memberName) {
+            const confirm = await Swal.fire({
+                title: 'সদস্য মুছুন?',
+                text: memberName,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'হ্যাঁ',
+                cancelButtonText: 'না'
+            });
+            
+            if (confirm.isConfirmed) {
+                try {
+                    showLoading();
+                    await makeRequest('deleteMember', { memberName });
+                    await loadData();
+                    Swal.fire({ icon: 'success', title: 'মুছে ফেলা হয়েছে' });
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'ত্রুটি', text: 'মোছা যায়নি' });
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+    </script>
+</body>
+  </html>
