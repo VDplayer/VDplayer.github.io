@@ -886,13 +886,13 @@
                 title: `Add meals for ${memberName}`,
                 text: `Current total meals: ${member ? member.totalMeals : 0}`,
                 input: 'number',
-                inputLabel: 'Number of meals to add (can be decimal like 0.5)',
+                inputLabel: 'Number of meals to add',
                 inputPlaceholder: 'Enter meals to add',
                 showCancelButton: true,
                 confirmButtonText: 'Add Meals',
                 cancelButtonText: 'Cancel',
                 inputValidator: (value) => {
-                    if (!value || parseFloat(value) < 0) return 'Please enter a valid number (0 or greater)';
+                    if (!value || parseFloat(value) < 0) return 'Please enter a valid number';
                 }
             });
             
