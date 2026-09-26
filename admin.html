@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyRoom — Admin Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+    <div class="text-center mb-6">
+      <div class="text-5xl mb-2">🔐</div>
+      <h1 class="text-2xl font-black text-purple-700">StudyRoom Admin</h1>
+      <p class="text-slate-500 text-sm mt-1">Authorized personnel only</p>
+    </div>
+    <div class="mb-3">
+      <label class="text-sm font-semibold">Admin Email</label>
+      <input id="admEmail" type="email" placeholder="you@gmail.com"
+             class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+    </div>
+    <div class="mb-3">
+      <label class="text-sm font-semibold">Password</label>
+      <input id="admPass" type="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')adminLogin()"
+             class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+    </div>
+    <p id="admErr" class="text-red-500 text-sm mb-3"></p>
+    <button onclick="adminLogin()" id="loginBtn"
+            class="gradient text-white w-full py-3 rounded-lg font-semibold hover:opacity-90">
+      Sign In
+    </button>
+    <div class="text-center mt-4">
+      <a href="index.html" class="text-sm text-slate-500 hover:text-purple-600 underline">← Back to site</a>
+    </div>
+  </div>
+</div>
+
+<div id="panelScreen" class="hidden max-w-6xl mx-auto px-4 py-8">
+  <div class="bg-white rounded-2xl p-6 shadow mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3">
+      <div>
+        <h1 class="text-2xl font-black text-purple-700">📚 StudyRoom Admin</h1>
+        <p class="text-sm text-slate-500" id="adminEmailLabel"></p>
+      </div>
+      <button onclick="adminLogout()" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-6 shadow">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <button onclick="adminTab('subs', this)" class="admin-tab bg-slate-800 text-white p-3 rounded-lg font-semibold">👥 Subscribers</button>
+      <button onclick="adminTab('pays', this)" class="admin-tab bg-white border p-3 rounded-lg font-semibold">💳 Payments</button>
+      <button onclick="adminTab('notes', this)" class="admin-tab bg-white border p-3 rounded-lg font-semibold">📄 Notes</button>
+      <button onclick="adminTab('links', this)" class="admin-tab bg-white border p-3 rounded-lg font-semibold">🔗 Links & Updates</button>
+    </div>
+
+    <div id="adminRevenue" class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6"></div>
+
+    <div id="admin-subs" class="admin-content"></div>
+    <div id="admin-pays" class="admin-content hidden"></div>
+    <div id="admin-notes" class="admin-content hidden"></div>
+    <div id="admin-links" class="admin-content hidden"></div>
+  </div>
+</div>
+
+<div id="loader" class="hidden fixed inset-0 bg-black/40 z-[100] items-center justify-center">
+  <div class="bg-white px-6 py-4 rounded-lg font-semibold">Please wait...</div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwd9c6x4Q7qtvhKB3s37vf_oFndCQt76Cp5tPjj-o_3nuABv-luyocSwT3dKxjj_lY0/exec";
+
+let adminUser = null;
+
+async function api(action, data = {}) {
+  showLoader(true);
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...data })
+    });
+    return await r.json();
+  } catch (e) {
+    console.error(e);
+    return { error: 'Network error' };
+  } finally {
+    showLoader(false);
+  }
+}
+
+function showLoader(v) {
+  const el = document.getElementById('loader');
+  el.classList.toggle('hidden', !v);
+  el.style.display = v ? 'flex' : 'none';
+}
+
+async function adminLogin() {
+  const email = document.getElementById('admEmail').value.trim();
+  const pass  = document.getElementById('admPass').value;
+  const errEl = document.getElementById('admErr');
+  errEl.textContent = '';
+
+  if (!email || !pass) {
+    errEl.textContent = 'Please fill both fields';
+    return;
+  }
+
+  document.getElementById('loginBtn').textContent = 'Checking...';
+  const res = await api('adminLogin', { email, pass });
+  document.getElementById('loginBtn').textContent = 'Sign In';
+
+  if (res.ok) {
+    adminUser = { email, loggedInAt: Date.now() };
+    localStorage.setItem('studyroom_admin', JSON.stringify(adminUser));
+    enterPanel();
+  } else {
+    errEl.textContent = res.error || 'Invalid credentials';
+  }
+}
+
+function enterPanel() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panelScreen').classList.remove('hidden');
+  document.getElementById('adminEmailLabel').textContent = 'Logged in as ' + adminUser.email;
+  loadAdmin();
+}
+
+function adminLogout() {
+  localStorage.removeItem('studyroom_admin');
+  adminUser = null;
+  document.getElementById('panelScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('admEmail').value = '';
+  document.getElementById('admPass').value = '';
+}
+
+async function loadAdmin() {
+  const res = await api('adminData');
+  if (res.error) return alert(res.error);
+
+  document.getElementById('adminRevenue').innerHTML = `
+    <div class="text-sm text-slate-500">Total Revenue</div>
+    <div class="text-3xl font-black text-green-700">${res.revenue}৳</div>
+    <div class="text-xs text-slate-500 mt-1">${res.users.filter(u => u.status === 'active').length} active subscribers</div>`;
+
+  document.getElementById('admin-subs').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">👥 All Subscribers</h3>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+    <thead><tr class="bg-slate-100">
+      <th class="p-2 text-left">Name</th>
+      <th class="p-2 text-left">Email</th>
+      <th class="p-2">Plan</th>
+      <th class="p-2">Status</th>
+      <th class="p-2">Joined</th>
+    </tr></thead>
+    <tbody>${res.users.map(u => `
+      <tr class="border-b">
+        <td class="p-2">${u.name || ''}</td>
+        <td class="p-2 text-xs">${u.email}</td>
+        <td class="p-2 text-center font-semibold">${u.plan || '—'}</td>
+        <td class="p-2 text-center">${u.status === 'active' ? '✅' : '⏳'}</td>
+        <td class="p-2 text-xs text-slate-500">${u.joined ? new Date(u.joined).toLocaleDateString() : ''}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+
+  document.getElementById('admin-pays').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">💳 Payment Approvals</h3>
+    ${res.payments.length ? res.payments.map(p => `
+      <div class="border rounded-lg p-3 mb-2 flex justify-between items-center flex-wrap gap-2">
+        <div>
+          <div class="font-semibold">${p.email} → ${p.plan} (${p.amount}৳)</div>
+          <div class="text-xs text-slate-500">ID: ${p.id} | TrxID: ${p.trxId || '—'}</div>
+          ${p.screenshot ? `<a href="${p.screenshot}" target="_blank" class="text-blue-600 text-xs underline">View Screenshot</a>` : ''}
+        </div>
+        <div class="flex gap-2 items-center">
+          <span class="text-xs px-2 py-1 rounded ${p.status === 'Approved' ? 'bg-green-100' : p.status === 'Rejected' ? 'bg-red-100' : 'bg-yellow-100'}">${p.status}</span>
+          ${p.status === 'Pending' ? `
+            <button onclick="approvePay('${p.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs">Approve</button>
+            <button onclick="rejectPay('${p.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-xs">Reject</button>
+          ` : ''}
+        </div>
+      </div>`).join('') : '<p class="text-slate-500">No payments yet.</p>'}`;
+
+  document.getElementById('admin-notes').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">📄 Upload Notes</h3>
+    <div class="border p-4 rounded-lg max-w-lg mb-4">
+      <select id="noteTier" class="w-full border rounded px-3 py-2 mb-2">
+        <option>Basic</option><option>Pro</option><option>Elite</option>
+      </select>
+      <input id="noteTitle" placeholder="Note title" class="w-full border rounded px-3 py-2 mb-2" />
+      <input id="notePdf" type="file" accept=".pdf" class="w-full border rounded px-3 py-2 mb-2" />
+      <div class="text-xs text-slate-500 mb-2">— OR paste Drive link —</div>
+      <input id="noteLink" placeholder="https://drive.google.com/..." class="w-full border rounded px-3 py-2 mb-2" />
+      <button onclick="addNote()" class="gradient text-white px-4 py-2 rounded">Add Note</button>
+    </div>
+    <h3 class="font-bold text-lg mt-6 mb-3">Current Notes</h3>
+    ${res.notes.length ? res.notes.map(n => `
+      <div class="flex justify-between items-center border-b py-2">
+        <div><b>${n.tier}</b> — ${n.title}</div>
+        <button onclick="removeNote('${n.tier}','${(n.title || '').replace(/'/g, "\\'")}')" class="text-red-500 text-sm">Remove</button>
+      </div>`).join('') : '<p class="text-slate-500">No notes uploaded.</p>'}`;
+
+  document.getElementById('admin-links').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">🔗 Delivery Links per Tier</h3>
+    ${['Basic','Pro','Elite'].map(t => `
+      <div class="mb-2 flex gap-2 items-center">
+        <span class="w-16 font-semibold">${t}</span>
+        <input id="link-${t}" value="${(res.links[t] || '').replace(/"/g, '&quot;')}"
+               placeholder="https://drive.google.com/..." class="flex-1 border rounded px-3 py-2" />
+        <button onclick="saveLink('${t}')" class="bg-slate-800 text-white px-4 py-2 rounded">Save</button>
+      </div>`).join('')}
+    <h3 class="font-bold text-lg mb-3 mt-6">📢 Post Update to All Users</h3>
+    <input id="updTitle" placeholder="Title" class="w-full border rounded px-3 py-2 mb-2" />
+    <textarea id="updMsg" placeholder="Message" class="w-full border rounded px-3 py-2 mb-2" rows="3"></textarea>
+    <button onclick="postUpdate()" class="gradient text-white px-4 py-2 rounded">Post Update</button>`;
+}
+
+function adminTab(name, btn) {
+  document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
+  document.getElementById('admin-' + name).classList.remove('hidden');
+  document.querySelectorAll('.admin-tab').forEach(b => {
+    b.classList.remove('bg-slate-800', 'text-white');
+    b.classList.add('bg-white', 'border');
+  });
+  btn.classList.add('bg-slate-800', 'text-white');
+}
+
+async function approvePay(id) { await api('approvePayment', { id }); loadAdmin(); }
+async function rejectPay(id)  { await api('rejectPayment', { id }); loadAdmin(); }
+
+async function saveLink(tier) {
+  const link = document.getElementById('link-' + tier).value;
+  await api('updateLink', { tier, link });
+  alert('Saved!');
+}
+
+async function postUpdate() {
+  const title = document.getElementById('updTitle').value;
+  const message = document.getElementById('updMsg').value;
+  if (!title) return alert('Title required');
+  await api('postUpdate', { title, message });
+  alert('Posted!');
+  document.getElementById('updTitle').value = '';
+  document.getElementById('updMsg').value = '';
+}
+
+async function addNote() {
+  const tier = document.getElementById('noteTier').value;
+  const title = document.getElementById('noteTitle').value;
+  const file = document.getElementById('notePdf').files[0];
+  const link = document.getElementById('noteLink').value;
+  if (!title) return alert('Title required');
+  if (!file && !link) return alert('Upload PDF or paste link');
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = async e => {
+      const res = await api('addNote', { tier, title, pdf: e.target.result });
+      if (res.success) { alert('Added!'); loadAdmin(); }
+      else alert('❌ ' + res.error);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const res = await api('addNote', { tier, title, link });
+    if (res.success) { alert('Added!'); loadAdmin(); }
+    else alert('❌ ' + res.error);
+  }
+}
+
+async function removeNote(tier, title) {
+  if (!confirm('Remove this note?')) return;
+  await api('removeNote', { tier, title });
+  loadAdmin();
+}
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('studyroom_admin');
+  if (saved) {
+    try {
+      adminUser = JSON.parse(saved);
+      api('verifyAdmin', { email: adminUser.email }).then(r => {
+        if (r.ok) enterPanel();
+        else localStorage.removeItem('studyroom_admin');
+      });
+    } catch (e) {
+      localStorage.removeItem('studyroom_admin');
+    }
+  }
+});
+</script>
+</body>
+</html>
