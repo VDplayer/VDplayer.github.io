@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyRoom — Admin Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  .admin-tab { transition: background 0.15s, color 0.15s; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+<!-- LOGIN -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+    <div class="text-center mb-6">
+      <div class="text-5xl mb-2">🔐</div>
+      <h1 class="text-2xl font-black text-purple-700">StudyRoom Admin</h1>
+      <p class="text-slate-500 text-sm mt-1">Authorized personnel only</p>
+    </div>
+    <div class="mb-3">
+      <label class="text-sm font-semibold">Admin Email</label>
+      <input id="admEmail" type="email" placeholder="you@gmail.com"
+             class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+    </div>
+    <div class="mb-3">
+      <label class="text-sm font-semibold">Password</label>
+      <input id="admPass" type="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')adminLogin()"
+             class="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+    </div>
+    <p id="admErr" class="text-red-500 text-sm mb-3"></p>
+    <button onclick="adminLogin()" id="loginBtn"
+            class="gradient text-white w-full py-3 rounded-lg font-semibold hover:opacity-90">
+      Sign In
+    </button>
+    <div class="text-center mt-4">
+      <a href="index.html" class="text-sm text-slate-500 hover:text-purple-600 underline">← Back to site</a>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div id="panelScreen" class="hidden max-w-6xl mx-auto px-4 py-8">
+  <div class="bg-white rounded-2xl p-6 shadow mb-6">
+    <div class="flex justify-between items-center flex-wrap gap-3">
+      <div>
+        <h1 class="text-2xl font-black text-purple-700">📚 StudyRoom Admin</h1>
+        <p class="text-sm text-slate-500" id="adminEmailLabel"></p>
+      </div>
+      <button onclick="adminLogout()" class="bg-slate-800 text-white px-4 py-2 rounded-lg font-semibold text-sm">
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-2xl p-6 shadow">
+    <!-- TABS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <button onclick="adminTab('subs')" id="tabBtn-subs" class="admin-tab p-4 rounded-lg font-semibold text-center">
+        <div class="text-2xl">👥</div>
+        <div class="text-sm mt-1">Subscribers</div>
+      </button>
+      <button onclick="adminTab('pays')" id="tabBtn-pays" class="admin-tab p-4 rounded-lg font-semibold text-center">
+        <div class="text-2xl">💳</div>
+        <div class="text-sm mt-1">Payments</div>
+      </button>
+      <button onclick="adminTab('notes')" id="tabBtn-notes" class="admin-tab p-4 rounded-lg font-semibold text-center">
+        <div class="text-2xl">📄</div>
+        <div class="text-sm mt-1">Notes</div>
+      </button>
+      <button onclick="adminTab('updates')" id="tabBtn-updates" class="admin-tab p-4 rounded-lg font-semibold text-center">
+        <div class="text-2xl">📢</div>
+        <div class="text-sm mt-1">Updates</div>
+      </button>
+    </div>
+
+    <div id="adminRevenue" class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6"></div>
+
+    <div id="admin-subs" class="admin-content"></div>
+    <div id="admin-pays" class="admin-content hidden"></div>
+    <div id="admin-notes" class="admin-content hidden"></div>
+    <div id="admin-updates" class="admin-content hidden"></div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" class="hidden fixed inset-0 bg-black/40 z-[100] items-center justify-center">
+  <div class="bg-white px-6 py-4 rounded-lg font-semibold">Please wait...</div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyIXCxWOwvX716Igqc6XYL8jb4bG_GQRxxSCe0LN45Zs_t6uLrOe-xNYZx0w6RTlpiZ/exec";
+
+let adminUser = null;
+
+async function api(action, data = {}) {
+  showLoader(true);
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...data })
+    });
+    return await r.json();
+  } catch (e) {
+    console.error(e);
+    return { error: 'Network error' };
+  } finally {
+    showLoader(false);
+  }
+}
+
+function showLoader(v) {
+  const el = document.getElementById('loader');
+  el.classList.toggle('hidden', !v);
+  el.style.display = v ? 'flex' : 'none';
+}
+
+/* ============ LOGIN ============ */
+async function adminLogin() {
+  const email = document.getElementById('admEmail').value.trim();
+  const pass  = document.getElementById('admPass').value;
+  const errEl = document.getElementById('admErr');
+  errEl.textContent = '';
+
+  if (!email || !pass) { errEl.textContent = 'Please fill both fields'; return; }
+
+  document.getElementById('loginBtn').textContent = 'Checking...';
+  const res = await api('adminLogin', { email, pass });
+  document.getElementById('loginBtn').textContent = 'Sign In';
+
+  if (res.ok) {
+    adminUser = { email, loggedInAt: Date.now() };
+    localStorage.setItem('studyroom_admin', JSON.stringify(adminUser));
+    enterPanel();
+  } else {
+    errEl.textContent = res.error || 'Invalid credentials';
+  }
+}
+
+function enterPanel() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('panelScreen').classList.remove('hidden');
+  document.getElementById('adminEmailLabel').textContent = 'Logged in as ' + adminUser.email;
+  adminTab('subs');
+  loadAdmin();
+}
+
+function adminLogout() {
+  localStorage.removeItem('studyroom_admin');
+  adminUser = null;
+  document.getElementById('panelScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('admEmail').value = '';
+  document.getElementById('admPass').value = '';
+}
+
+/* ============ TABS ============ */
+function adminTab(name) {
+  document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
+  const target = document.getElementById('admin-' + name);
+  if (target) target.classList.remove('hidden');
+
+  document.querySelectorAll('.admin-tab').forEach(b => {
+    b.classList.remove('bg-slate-800','text-white');
+    b.classList.add('bg-slate-100','text-slate-700','border','border-slate-200');
+  });
+
+  const activeBtn = document.getElementById('tabBtn-' + name);
+  if (activeBtn) {
+    activeBtn.classList.remove('bg-slate-100','text-slate-700','border','border-slate-200');
+    activeBtn.classList.add('bg-slate-800','text-white');
+  }
+}
+
+/* ============ LOAD DATA ============ */
+async function loadAdmin() {
+  const res = await api('adminData');
+  if (res.error) return alert(res.error);
+
+  document.getElementById('adminRevenue').innerHTML = `
+    <div class="text-sm text-slate-500">Total Revenue</div>
+    <div class="text-3xl font-black text-green-700">${res.revenue}৳</div>
+    <div class="text-xs text-slate-500 mt-1">${res.users.filter(u => u.status === 'active').length} active subscribers</div>`;
+
+  // Latest payment per email
+  const latestPay = {};
+  res.payments.forEach(p => {
+    const e = (p.email || '').toLowerCase();
+    if (!latestPay[e]) latestPay[e] = p;
+  });
+
+  /* ---- SUBSCRIBERS ---- */
+  document.getElementById('admin-subs').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">👥 All Subscribers</h3>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+    <thead><tr class="bg-slate-100">
+      <th class="p-2 text-left">Name</th>
+      <th class="p-2 text-left">Email</th>
+      <th class="p-2">Plan</th>
+      <th class="p-2">Status</th>
+      <th class="p-2">Joined</th>
+    </tr></thead>
+    <tbody>${res.users.map(u => {
+      const k = (u.email || '').toLowerCase();
+      const pay = latestPay[k];
+      let displayPlan = u.plan || (pay ? pay.plan : '') || '—';
+
+      let status = 'none';
+      if (u.status === 'active') status = 'active';
+      else if (pay) status = (pay.status || '').toLowerCase();
+      else status = (u.status || 'none');
+
+      let badge = '';
+      if (status === 'active' || status === 'approved')
+        badge = `<span class="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">Active</span>`;
+      else if (status === 'pending')
+        badge = `<span class="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-700">Pending</span>`;
+      else if (status === 'rejected')
+        badge = `<span class="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">Rejected</span>`;
+      else
+        badge = `<span class="px-2 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600">None</span>`;
+
+      return `
+      <tr class="border-b">
+        <td class="p-2">${u.name || ''}</td>
+        <td class="p-2 text-xs">${u.email}</td>
+        <td class="p-2 text-center font-semibold">${displayPlan}</td>
+        <td class="p-2 text-center">${badge}</td>
+        <td class="p-2 text-xs text-slate-500">${u.joined ? new Date(u.joined).toLocaleDateString() : ''}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+
+  /* ---- PAYMENTS ---- */
+  document.getElementById('admin-pays').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">💳 Payment Approvals</h3>
+    ${res.payments.length ? res.payments.map(p => `
+      <div class="border rounded-lg p-3 mb-2 flex justify-between items-center flex-wrap gap-2">
+        <div>
+          <div class="font-semibold">${p.email} → ${p.plan} (${p.amount}৳)</div>
+          <div class="text-xs text-slate-500">ID: ${p.id} | TrxID: ${p.trxId || '—'}</div>
+          ${p.screenshot ? `<a href="${p.screenshot}" target="_blank" class="text-blue-600 text-xs underline">View Screenshot</a>` : ''}
+        </div>
+        <div class="flex gap-2 items-center">
+          <span class="text-xs px-2 py-1 rounded ${p.status === 'Approved' ? 'bg-green-100 text-green-700' : p.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${p.status}</span>
+          ${p.status === 'Pending' ? `
+            <button onclick="approvePay('${p.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs">Approve</button>
+            <button onclick="rejectPay('${p.id}')" class="bg-red-600 text-white px-3 py-1 rounded text-xs">Reject</button>
+          ` : ''}
+        </div>
+      </div>`).join('') : '<p class="text-slate-500">No payments yet.</p>'}`;
+
+  /* ---- NOTES (PDF upload only) ---- */
+  document.getElementById('admin-notes').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">📄 Upload Notes (PDF)</h3>
+    <div class="border p-4 rounded-lg max-w-lg mb-4">
+      <label class="text-sm font-semibold">Tier</label>
+      <select id="noteTier" class="w-full border rounded px-3 py-2 mb-3 mt-1">
+        <option>Basic</option><option>Pro</option>
+      </select>
+      <label class="text-sm font-semibold">Note Title</label>
+      <input id="noteTitle" placeholder="e.g. Physics Chapter 1" class="w-full border rounded px-3 py-2 mb-3 mt-1" />
+      <label class="text-sm font-semibold">PDF File</label>
+      <input id="notePdf" type="file" accept=".pdf" class="w-full border rounded px-3 py-2 mb-3 mt-1" />
+      <button onclick="addNote()" class="gradient text-white px-4 py-2 rounded w-full">Upload Note</button>
+    </div>
+    <h3 class="font-bold text-lg mt-6 mb-3">Current Notes</h3>
+    ${res.notes.length ? res.notes.map(n => `
+      <div class="flex justify-between items-center border-b py-2">
+        <div><b>${n.tier}</b> — ${n.title}</div>
+        <button onclick="removeNote('${n.tier}','${(n.title || '').replace(/'/g, "\\'")}')" class="text-red-500 text-sm">Remove</button>
+      </div>`).join('') : '<p class="text-slate-500">No notes uploaded.</p>'}`;
+
+  /* ---- UPDATES (broadcasts) ---- */
+  document.getElementById('admin-updates').innerHTML = `
+    <h3 class="font-bold text-lg mb-3">📢 Post Update to All Users</h3>
+    <div class="border p-4 rounded-lg max-w-lg mb-6">
+      <label class="text-sm font-semibold">Title</label>
+      <input id="updTitle" placeholder="e.g. New notes uploaded" class="w-full border rounded px-3 py-2 mb-3 mt-1" />
+      <label class="text-sm font-semibold">Message</label>
+      <textarea id="updMsg" placeholder="Write your message..." rows="4" class="w-full border rounded px-3 py-2 mb-3 mt-1"></textarea>
+      <button onclick="postUpdate()" class="gradient text-white px-4 py-2 rounded w-full">Post Update</button>
+    </div>
+    <h3 class="font-bold text-lg mb-3">Recent Updates</h3>
+    ${res.updates.length ? res.updates.map(u => `
+      <div class="border-l-4 border-purple-500 pl-3 py-2 mb-2">
+        <div class="font-semibold">${u.title}</div>
+        <div class="text-sm text-slate-600">${u.message}</div>
+        <div class="text-xs text-slate-400 mt-1">${u.date ? new Date(u.date).toLocaleString() : ''}</div>
+      </div>`).join('') : '<p class="text-slate-500">No updates posted yet.</p>'}`;
+}
+
+/* ============ ACTIONS ============ */
+async function approvePay(id) { await api('approvePayment', { id }); loadAdmin(); }
+async function rejectPay(id)  { await api('rejectPayment', { id }); loadAdmin(); }
+
+async function postUpdate() {
+  const title = document.getElementById('updTitle').value.trim();
+  const message = document.getElementById('updMsg').value.trim();
+  if (!title) return alert('Title required');
+  await api('postUpdate', { title, message });
+  alert('✅ Posted!');
+  loadAdmin();
+}
+
+async function addNote() {
+  const tier = document.getElementById('noteTier').value;
+  const title = document.getElementById('noteTitle').value.trim();
+  const file = document.getElementById('notePdf').files[0];
+  if (!title) return alert('Title required');
+  if (!file) return alert('Please select a PDF file');
+
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const res = await api('addNote', { tier, title, pdf: e.target.result });
+    if (res.success) { alert('✅ Note uploaded!'); loadAdmin(); }
+    else alert('❌ ' + res.error);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function removeNote(tier, title) {
+  if (!confirm('Remove this note?')) return;
+  await api('removeNote', { tier, title });
+  loadAdmin();
+}
+
+/* ============ AUTO-LOGIN ============ */
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('studyroom_admin');
+  if (saved) {
+    try {
+      adminUser = JSON.parse(saved);
+      api('verifyAdmin', { email: adminUser.email }).then(r => {
+        if (r.ok) enterPanel();
+        else localStorage.removeItem('studyroom_admin');
+      });
+    } catch (e) {
+      localStorage.removeItem('studyroom_admin');
+    }
+  }
+});
+</script>
+</body>
+</html>
