@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyRoom — Admin Panel</title>
+
+<style>
+  * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+  html, body { margin: 0; background: #f8fafc; }
+  body { font-family: 'Inter', system-ui, sans-serif; color: #0f172a; overflow-x: hidden; }
+  .hidden { display: none !important; }
+  #panelScreen { display: none; }
+  #panelScreen.open { display: block; }
+  #loader { display: none !important; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; background: rgba(15,23,42,0.6); }
+  #loader.open { display: flex !important; }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  h1, h2, h3 { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; }
+
+  .mesh-bg {
+    position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(at 20% 20%, rgba(102,126,234,0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(240,147,251,0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 80%, rgba(79,172,254,0.12) 0px, transparent 50%);
+  }
+
+  .gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+  .hero-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 6s ease infinite;
+  }
+  @keyframes gradientMove {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .admin-tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.4rem; padding: 16px 12px; border-radius: 16px; font-weight: 600;
+    background: rgba(255,255,255,0.6); color: #475569;
+    border: 1.5px solid transparent;
+    transition: all 0.25s; cursor: pointer;
+    min-width: 0;
+  }
+  .admin-tab:hover { background: rgba(255,255,255,0.95); transform: translateY(-2px); }
+  .admin-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    box-shadow: 0 8px 24px rgba(102,126,234,0.35);
+    transform: translateY(-2px);
+  }
+  .admin-tab.active * { color: white !important; }
+
+  .btn-primary {
+    position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white; overflow: hidden;
+    transition: all 0.25s;
+    box-shadow: 0 4px 14px rgba(102,126,234,0.4);
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.5); }
+
+  .q-block { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .opt-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+  .opt-row input[type="radio"] { width: 18px; height: 18px; accent-color: #667eea; flex-shrink: 0; }
+
+  .tab-switch {
+    display: inline-flex; gap: 4px; background: #e2e8f0;
+    border-radius: 12px; padding: 4px; margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .tab-switch button {
+    padding: 10px 22px; border-radius: 10px; font-weight: 600;
+    font-size: 14px; color: #475569; background: transparent;
+    transition: all 0.25s; cursor: pointer; border: none;
+  }
+  .tab-switch button.active { background: white; color: #1e293b; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  .progress-bar { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+    width: 0%; transition: width 0.4s; border-radius: 5px;
+  }
+
+  .stat-card {
+    background: white; border-radius: 20px; padding: 24px;
+    border: 1px solid #e2e8f0; position: relative; overflow: hidden;
+    transition: all 0.3s;
+  }
+  .stat-card::after {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
+    transform: translate(30%, -30%);
+  }
+  .stat-card:hover { border-color: #667eea; transform: translateY(-4px); box-shadow: 0 12px 30px rgba(102,126,234,0.15); }
+
+  .glass-card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 4px 20px rgba(31,38,135,0.06);
+  }
+
+  .loader-box {
+    background: white; padding: 28px 40px; border-radius: 20px;
+    font-weight: 700; font-size: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    color: #1e293b;
+  }
+  .loader-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .form-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .form-field label { font-size: 13px; font-weight: 700; color: #475569; }
+  .form-field input, .form-field select, .form-field textarea {
+    width: 100%; border: 2px solid #e2e8f0;
+    border-radius: 12px; padding: 10px 14px;
+    font-size: 14px; outline: none; transition: 0.2s;
+    background: white; min-width: 0;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+    border-color: #667eea;
+  }
+
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-scroll table { min-width: 700px; }
+
+  @media (max-width: 640px) {
+    .admin-tab { padding: 12px 8px; font-size: 12px; }
+    .admin-tab .tab-icon { font-size: 22px; }
+    .q-block { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="mesh-bg"></div>
+
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+  <div class="glass-card p-8 md:p-10 max-w-md w-full" style="box-shadow: 0 20px 60px rgba(31,38,135,0.15);">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl gradient text-white text-4xl mb-4 shadow-lg">🔐</div>
+      <h1 class="text-3xl font-black hero-title">Admin Access</h1>
+      <p class="text-slate-500 text-sm mt-2">Authorized personnel only</p>
+    </div>
+    <div class="form-field mb-4">
+      <label>Email</label>
+      <input id="admEmail" type="email" placeholder="Admin email" />
+    </div>
+    <div class="form-field mb-4">
+      <label>Password</label>
+      <input id="admPass" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')adminLogin()" />
+    </div>
+    <p id="admErr" class="text-red-500 text-sm mb-4"></p>
+    <button onclick="adminLogin()" id="loginBtn" class="btn-primary w-full py-3.5 rounded-xl text-lg">Sign In</button>
+    <div class="text-center mt-5"><a href="index.html" class="text-sm text-slate-500 hover:text-purple-600 underline transition">← Back to site</a></div>
+  </div>
+</div>
+
+<div id="panelScreen" class="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+  <div class="glass-card p-5 md:p-6 mb-6 flex justify-between items-center flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl gradient text-white text-2xl flex items-center justify-center">📚</div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-black hero-title">StudyRoom Admin</h1>
+        <p class="text-xs md:text-sm text-slate-500" id="adminEmailLabel"></p>
+      </div>
+    </div>
+    <button onclick="adminLogout()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 md:px-5 py-2.5 rounded-xl font-semibold text-sm transition">Logout</button>
+  </div>
+
+  <div class="glass-card p-4 md:p-6">
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3 mb-6">
+      <button onclick="adminTab('subs')" id="tabBtn-subs" class="admin-tab"><div class="text-3xl tab-icon">👥</div><div class="text-sm">Subscribers</div></button>
+      <button onclick="adminTab('pays')" id="tabBtn-pays" class="admin-tab"><div class="text-3xl tab-icon">💳</div><div class="text-sm">Payments</div></button>
+      <button onclick="adminTab('notes')" id="tabBtn-notes" class="admin-tab"><div class="text-3xl tab-icon">📄</div><div class="text-sm">Notes</div></button>
+      <button onclick="adminTab('tests')" id="tabBtn-tests" class="admin-tab"><div class="text-3xl tab-icon">🧪</div><div class="text-sm">Tests</div></button>
+      <button onclick="adminTab('updates')" id="tabBtn-updates" class="admin-tab"><div class="text-3xl tab-icon">📢</div><div class="text-sm">Updates</div></button>
+      <button onclick="adminTab('comments')" id="tabBtn-comments" class="admin-tab"><div class="text-3xl tab-icon">💬</div><div class="text-sm">Comments</div></button>
+    </div>
+
+    <div id="adminRevenue" class="mb-6"></div>
+
+    <div id="admin-subs" class="admin-content"></div>
+    <div id="admin-pays" class="admin-content hidden"></div>
+    <div id="admin-notes" class="admin-content hidden"></div>
+    <div id="admin-tests" class="admin-content hidden"></div>
+    <div id="admin-updates" class="admin-content hidden"></div>
+    <div id="admin-comments" class="admin-content hidden"></div>
+  </div>
+</div>
+
+<div id="loader">
+  <div class="loader-box">
+    <div class="loader-spinner"></div>
+    <div>Please Wait...</div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbyGxFI19aePc8UgQrHI7OS5Rharlsikw75Kx9Yo0w4g5dZjUBSXfzSnBSgegNj5xP4fxg/exec";
+let adminUser = null;
+let newQuestions = [{ question: '', options: ['', '', '', ''], correct: 0 }];
+let noteUploadMode = 'pdf';
+
+async function api(action, data = {}) {
+  showLoader(true);
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...data })
+    });
+    return await r.json();
+  } catch (e) { console.error(e); return { error: 'Network error' }; }
+  finally { showLoader(false); }
+}
+
+function showLoader(v) {
+  const el = document.getElementById('loader');
+  el.classList.toggle('open', v);
+  el.style.display = v ? 'flex' : 'none';
+}
+
+async function adminLogin() {
+  const email = document.getElementById('admEmail').value.trim();
+  const pass  = document.getElementById('admPass').value;
+  const errEl = document.getElementById('admErr');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Fill both fields'; return; }
+  document.getElementById('loginBtn').textContent = 'Checking...';
+  const res = await api('adminLogin', { email, pass });
+  document.getElementById('loginBtn').textContent = 'Sign In';
+  if (res.ok) {
+    adminUser = { email, loggedInAt: Date.now() };
+    localStorage.setItem('studyroom_admin', JSON.stringify(adminUser));
+    enterPanel();
+  } else errEl.textContent = res.error || 'Invalid credentials';
+}
+
+function enterPanel() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  const panel = document.getElementById('panelScreen');
+  panel.classList.add('open');
+  panel.style.display = 'block';
+  document.getElementById('adminEmailLabel').textContent = 'Logged in as ' + adminUser.email;
+  adminTab('subs');
+  loadAdmin();
+}
+
+function adminLogout() {
+  localStorage.removeItem('studyroom_admin');
+  adminUser = null;
+  const panel = document.getElementById('panelScreen');
+  panel.classList.remove('open');
+  panel.style.display = 'none';
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('admEmail').value = '';
+  document.getElementById('admPass').value = '';
+}
+
+function adminTab(name) {
+  document.querySelectorAll('.admin-content').forEach(c => c.classList.add('hidden'));
+  document.getElementById('admin-' + name).classList.remove('hidden');
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tabBtn-' + name).classList.add('active');
+}
+
+async function loadAdmin() {
+  const res = await api('adminData');
+  if (res.error) return alert(res.error);
+
+  document.getElementById('adminRevenue').innerHTML = `
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="stat-card">
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Total Revenue</div>
+        <div class="text-3xl font-black hero-title">${res.revenue}৳</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Active Subscribers</div>
+        <div class="text-3xl font-black text-green-600">${res.users.filter(u => u.status === 'active').length}</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">Pending Payments</div>
+        <div class="text-3xl font-black text-orange-500">${res.payments.filter(p=>p.status==='Pending').length}</div>
+      </div>
+    </div>`;
+
+  const latestPay = {};
+  res.payments.forEach(p => {
+    const e = (p.email || '').toLowerCase();
+    if (!latestPay[e]) latestPay[e] = p;
+  });
+
+  document.getElementById('admin-subs').innerHTML = `
+    <h3 class="font-bold text-xl md:text-2xl mb-4">👥 All Subscribers</h3>
+    <div class="table-scroll">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gradient-to-r from-slate-100 to-purple-50">
+            <th class="p-3 text-left font-bold text-slate-700">Name</th>
+            <th class="p-3 text-left font-bold text-slate-700">Email</th>
+            <th class="p-3 text-center font-bold text-slate-700">Plan</th>
+            <th class="p-3 text-center font-bold text-slate-700">Status</th>
+            <th class="p-3 text-center font-bold text-slate-700">Expires</th>
+            <th class="p-3 text-center font-bold text-slate-700">Streak</th>
+            <th class="p-3 text-center font-bold text-slate-700">Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${res.users.map(u => {
+            const k = (u.email || '').toLowerCase();
+            const pay = latestPay[k];
+            let displayPlan = u.plan || (pay ? pay.plan : '') || '—';
+            let status = 'none';
+            if (u.status === 'active') status = 'active';
+            else if (u.status === 'expired') status = 'expired';
+            else if (pay) status = (pay.status || '').toLowerCase();
+            else status = u.status || 'none';
+
+            let badge = '';
+            if (status === 'active' || status === 'approved') badge = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Active</span>`;
+            else if (status === 'pending') badge = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">Pending</span>`;
+            else if (status === 'rejected') badge = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Rejected</span>`;
+            else if (status === 'expired') badge = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Expired</span>`;
+            else badge = `<span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">None</span>`;
+
+            const exp = u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : '—';
+            return `
+            <tr class="border-b border-slate-100 hover:bg-purple-50/30 transition ${status === 'expired' ? 'bg-orange-50/50' : ''}">
+              <td class="p-3 font-semibold">${u.name || ''}</td>
+              <td class="p-3 text-xs text-slate-600">${u.email}</td>
+              <td class="p-3 text-center font-bold">${displayPlan}</td>
+              <td class="p-3 text-center">${badge}</td>
+              <td class="p-3 text-center text-xs text-slate-600">${exp}</td>
+              <td class="p-3 text-center font-bold text-orange-600">${u.streak ? '🔥 ' + u.streak : '—'}</td>
+              <td class="p-3 text-xs text-slate-500">${u.joined ? new Date(u.joined).toLocaleDateString() : ''}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  document.getElementById('admin-pays').innerHTML = `
+    <h3 class="font-bold text-xl md:text-2xl mb-4">💳 Payment Approvals</h3>
+    ${res.payments.length ? res.payments.map(p => `
+      <div class="border-2 border-slate-100 hover:border-purple-200 rounded-2xl p-4 mb-3 flex justify-between items-center flex-wrap gap-3 transition">
+        <div class="min-w-0 flex-1">
+          <div class="font-bold text-base md:text-lg break-all">${p.email}</div>
+          <div class="text-sm text-slate-500">${p.plan} Plan · ${p.amount}৳ · TrxID: ${p.trxId || '—'}</div>
+          <div class="flex gap-3 mt-2 flex-wrap">
+            ${p.screenshot ? `<a href="${p.screenshot}" target="_blank" class="text-blue-600 text-xs underline font-semibold">📷 Screenshot</a>` : ''}
+            ${p.invoiceUrl ? `<a href="${p.invoiceUrl}" target="_blank" class="text-purple-600 text-xs underline font-semibold">📄 Invoice</a>` : ''}
+          </div>
+        </div>
+        <div class="flex gap-2 items-center flex-wrap">
+          <span class="text-xs px-3 py-1.5 rounded-full font-bold ${p.status === 'Approved' ? 'bg-green-100 text-green-700' : p.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${p.status}</span>
+          ${p.status === 'Pending' ? `
+            <button onclick="approvePay('${p.id}')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">✓ Approve</button>
+            <button onclick="rejectPay('${p.id}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">✕ Reject</button>
+          ` : ''}
+        </div>
+      </div>`).join('') : '<p class="text-slate-500">No payments yet.</p>'}`;
+
+  document.getElementById('admin-notes').innerHTML = `
+    <h3 class="font-bold text-xl md:text-2xl mb-2">📄 Upload Notes</h3>
+    <p class="text-sm text-slate-500 mb-6">Notes are visible to all Basic & Pro users.</p>
+
+    <div class="border-2 border-slate-100 rounded-2xl p-5 md:p-6 max-w-2xl mb-6">
+      <div class="tab-switch">
+        <button onclick="switchNoteMode('pdf')" id="noteModePdf" class="active">📎 Upload PDF</button>
+        <button onclick="switchNoteMode('link')" id="noteModeLink">🔗 Drive Link</button>
+      </div>
+
+      <div class="form-field mb-4">
+        <label>Note Title</label>
+        <input id="noteTitle" placeholder="e.g. Physics Chapter 1" />
+      </div>
+
+      <div id="pdfPanel">
+        <div class="form-field mb-2">
+          <label>PDF File</label>
+          <input id="notePdf" type="file" accept=".pdf" onchange="onPdfPick(this)" />
+        </div>
+        <p class="text-xs text-slate-500 mb-3">Max 20 MB.</p>
+        <div id="uploadProgress" class="hidden">
+          <div class="text-xs text-slate-600 font-semibold" id="progressText">Preparing...</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+      </div>
+
+      <div id="linkPanel" class="hidden">
+        <div class="form-field mb-2">
+          <label>Google Drive Link</label>
+          <input id="noteLink" placeholder="https://drive.google.com/file/d/.../view" />
+        </div>
+        <p class="text-xs text-slate-500 mb-3">Make sure it's shared as "Anyone with the link can view".</p>
+      </div>
+
+      <button onclick="saveNote()" class="btn-primary px-8 py-3 rounded-xl w-full mt-4">Save Note</button>
+    </div>
+
+    <h3 class="font-bold text-xl md:text-2xl mt-8 mb-4">Current Notes</h3>
+    ${res.notes.length ? res.notes.map(n => `
+      <div class="flex justify-between items-center border-b border-slate-100 py-3 hover:bg-purple-50/30 rounded-lg px-3 transition gap-3 flex-wrap">
+        <div class="font-semibold break-all">📄 ${n.title}</div>
+        <div class="flex gap-3 items-center">
+          <a href="${n.link}" target="_blank" class="text-blue-600 text-sm underline font-semibold">Open</a>
+          <button onclick="removeNote('${n.tier}','${(n.title || '').replace(/'/g, "\\'")}')" class="text-red-500 text-sm font-semibold hover:text-red-700 transition">Remove</button>
+        </div>
+      </div>`).join('') : '<p class="text-slate-500">No notes uploaded.</p>'}`;
+
+  document.getElementById('admin-tests').innerHTML = `
+    <div class="flex items-center gap-3 mb-4 flex-wrap">
+      <h3 class="font-bold text-xl md:text-2xl">🧪 Create Mock Test</h3>
+      <span class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">🔒 PRO USERS ONLY</span>
+    </div>
+
+    <div class="border-2 border-slate-100 rounded-2xl p-5 md:p-6 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        <div class="form-field">
+          <label>Test Title</label>
+          <input id="testTitle" placeholder="e.g. Physics Mock 1" />
+        </div>
+        <div class="form-field">
+          <label>Duration (min)</label>
+          <input id="testDuration" type="number" value="10" min="1" />
+        </div>
+        <div class="form-field">
+          <label>Visible To</label>
+          <input value="Pro Users Only" disabled class="bg-slate-100 text-slate-500 cursor-not-allowed" />
+        </div>
+      </div>
+
+      <h4 class="font-bold mb-3 text-slate-700">Questions</h4>
+      <div id="questionsContainer"></div>
+
+      <div class="flex flex-wrap gap-3 mt-3">
+        <button onclick="addQuestion()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition">+ Add Question</button>
+        <button onclick="submitTest()" class="btn-primary px-6 py-2.5 rounded-xl">Save Test</button>
+      </div>
+    </div>
+
+    <h3 class="font-bold text-xl md:text-2xl mt-8 mb-4">Existing Tests</h3>
+    ${res.tests.length ? res.tests.map(t => `
+      <div class="flex justify-between items-center border-b border-slate-100 py-3 hover:bg-purple-50/30 rounded-lg px-3 transition gap-3 flex-wrap">
+        <div class="min-w-0">
+          <div class="font-bold break-words">${t.title}</div>
+          <div class="text-xs text-slate-500 mt-0.5">${t.questionCount} Q · ${t.duration} min · Pro only</div>
+        </div>
+        <button onclick="removeTest('${t.id}')" class="text-red-500 text-sm font-semibold hover:text-red-700 transition">Remove</button>
+      </div>`).join('') : '<p class="text-slate-500">No tests yet.</p>'}`;
+
+  renderQuestions();
+
+  document.getElementById('admin-updates').innerHTML = `
+    <h3 class="font-bold text-xl md:text-2xl mb-4">📢 Post Update to All Users</h3>
+    <div class="border-2 border-slate-100 rounded-2xl p-5 md:p-6 max-w-lg mb-6">
+      <div class="form-field mb-3">
+        <label>Title</label>
+        <input id="updTitle" placeholder="Title" />
+      </div>
+      <div class="form-field mb-3">
+        <label>Message</label>
+        <textarea id="updMsg" placeholder="Message" rows="4"></textarea>
+      </div>
+      <button onclick="postUpdate()" class="btn-primary px-6 py-3 rounded-xl w-full">Post Update</button>
+    </div>
+    <h3 class="font-bold text-xl md:text-2xl mb-4">Recent Updates</h3>
+    ${res.updates.length ? res.updates.map(u => `
+      <div class="border-l-4 border-purple-500 pl-4 py-3 mb-3 bg-gradient-to-r from-purple-50/50 to-transparent rounded-r-xl">
+        <div class="font-bold">${u.title}</div>
+        <div class="text-sm text-slate-600 mt-1">${u.message}</div>
+      </div>`).join('') : '<p class="text-slate-500">No updates yet.</p>'}`;
+
+  document.getElementById('admin-comments').innerHTML = `
+    <h3 class="font-bold text-xl md:text-2xl mb-4">💬 Recent Comments</h3>
+    ${res.comments.length ? res.comments.map(c => `
+      <div class="border-2 border-slate-100 rounded-2xl p-4 mb-3">
+        <div class="text-xs text-slate-500 mb-2 break-all">
+          <b class="text-slate-700">${c.email}</b> on <b class="text-slate-700">${c.noteTitle}</b> · ${new Date(c.date).toLocaleString()}
+        </div>
+        <div class="text-sm text-slate-700 mb-3 break-words">${(c.message || '').replace(/</g,'&lt;')}</div>
+        <button onclick="removeComment('${c.email}','${(c.noteTitle || '').replace(/'/g,"\\'")}','${(c.message || '').replace(/'/g,"\\'").replace(/\n/g,' ')}')" class="text-red-500 text-xs font-semibold hover:text-red-700 transition">🗑 Delete</button>
+      </div>`).join('') : '<p class="text-slate-500">No comments yet.</p>'}`;
+}
+
+function switchNoteMode(mode) {
+  noteUploadMode = mode;
+  const pdfBtn = document.getElementById('noteModePdf');
+  const linkBtn = document.getElementById('noteModeLink');
+  const pdfPanel = document.getElementById('pdfPanel');
+  const linkPanel = document.getElementById('linkPanel');
+  if (mode === 'pdf') {
+    pdfBtn.classList.add('active'); linkBtn.classList.remove('active');
+    pdfPanel.classList.remove('hidden'); linkPanel.classList.add('hidden');
+  } else {
+    linkBtn.classList.add('active'); pdfBtn.classList.remove('active');
+    linkPanel.classList.remove('hidden'); pdfPanel.classList.add('hidden');
+  }
+}
+
+function onPdfPick(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    alert('PDF too large (max 20 MB)');
+    input.value = '';
+  }
+}
+
+async function saveNote() {
+  const title = document.getElementById('noteTitle').value.trim();
+  if (!title) return alert('Please enter a note title');
+
+  if (noteUploadMode === 'link') {
+    const link = document.getElementById('noteLink').value.trim();
+    if (!link) return alert('Please paste a Google Drive link');
+    if (link.indexOf('drive.google.com') === -1 && link.indexOf('docs.google.com') === -1) {
+      return alert('Please paste a valid Google Drive link');
+    }
+    const res = await api('addNoteFromLink', { title, link });
+    if (res.success) { alert('✅ Note saved!'); loadAdmin(); }
+    else alert('❌ ' + res.error);
+    return;
+  }
+
+  const file = document.getElementById('notePdf').files[0];
+  if (!file) return alert('Please choose a PDF file');
+
+  const progressWrap = document.getElementById('uploadProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  progressWrap.classList.remove('hidden');
+  progressFill.style.width = '0%';
+  progressText.textContent = 'Reading file...';
+
+  const reader = new FileReader();
+  reader.onprogress = (e) => {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 40);
+      progressFill.style.width = pct + '%';
+      progressText.textContent = `Reading... ${Math.round(pct * 2.5)}%`;
+    }
+  };
+  reader.onload = async (e) => {
+    progressFill.style.width = '50%';
+    progressText.textContent = 'Uploading to Google Drive...';
+    try {
+      const res = await api('addNote', { title, pdf: e.target.result });
+      if (res.success) {
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Complete!';
+        setTimeout(() => { alert('✅ Note uploaded!'); loadAdmin(); }, 400);
+      } else {
+        progressWrap.classList.add('hidden');
+        alert('❌ ' + (res.error || 'Upload failed'));
+      }
+    } catch (err) {
+      progressWrap.classList.add('hidden');
+      alert('❌ Network error. Try Drive link option instead.');
+    }
+  };
+  reader.onerror = () => {
+    progressWrap.classList.add('hidden');
+    alert('❌ Failed to read file');
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderQuestions() {
+  const el = document.getElementById('questionsContainer');
+  if (!el) return;
+  el.innerHTML = newQuestions.map((q, i) => `
+    <div class="q-block">
+      <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+        <div class="font-bold text-sm text-slate-700">Question ${i+1}</div>
+        ${newQuestions.length > 1 ? `<button onclick="removeQuestion(${i})" class="text-red-500 text-xs font-semibold">Remove</button>` : ''}
+      </div>
+      <input placeholder="Question text" value="${(q.question || '').replace(/"/g, '&quot;')}" oninput="newQuestions[${i}].question = this.value" class="w-full border-2 border-slate-200 focus:border-purple-500 rounded-lg px-3 py-2 mb-3 outline-none transition" />
+      ${q.options.map((opt, j) => `
+        <div class="opt-row">
+          <input type="radio" name="correct${i}" ${q.correct === j ? 'checked' : ''} onchange="newQuestions[${i}].correct = ${j}" />
+          <input placeholder="Option ${j+1}" value="${(opt || '').replace(/"/g, '&quot;')}" oninput="newQuestions[${i}].options[${j}] = this.value" class="flex-1 border-2 border-slate-200 focus:border-purple-500 rounded-lg px-3 py-1.5 outline-none transition min-w-0" />
+        </div>`).join('')}
+      <div class="text-xs text-slate-500 mt-2 font-medium">↑ Click a radio to mark the correct answer</div>
+    </div>`).join('');
+}
+
+function addQuestion() {
+  newQuestions.push({ question: '', options: ['', '', '', ''], correct: 0 });
+  renderQuestions();
+}
+function removeQuestion(i) {
+  newQuestions.splice(i, 1);
+  renderQuestions();
+}
+
+async function approvePay(id) { await api('approvePayment', { id }); loadAdmin(); }
+async function rejectPay(id)  { await api('rejectPayment', { id }); loadAdmin(); }
+
+async function postUpdate() {
+  const title = document.getElementById('updTitle').value.trim();
+  const message = document.getElementById('updMsg').value.trim();
+  if (!title) return alert('Title required');
+  await api('postUpdate', { title, message });
+  alert('✅ Posted!'); loadAdmin();
+}
+
+async function removeNote(tier, title) {
+  if (!confirm('Remove this note?')) return;
+  await api('removeNote', { tier, title });
+  loadAdmin();
+}
+
+async function submitTest() {
+  const title = document.getElementById('testTitle').value.trim();
+  const duration = Number(document.getElementById('testDuration').value) || 10;
+  if (!title) return alert('Test title required');
+  const questions = newQuestions.map(q => ({
+    question: q.question.trim(),
+    options: q.options.map(o => o.trim()),
+    correct: q.correct
+  })).filter(q => q.question && q.options.filter(o=>o).length >= 2);
+  if (!questions.length) return alert('At least one valid question required');
+  const res = await api('addTest', { title, duration, questions, tier: 'Pro' });
+  if (res.success) {
+    alert('✅ Test saved! (Pro users only)');
+    newQuestions = [{ question: '', options: ['', '', '', ''], correct: 0 }];
+    loadAdmin();
+  } else alert('❌ ' + res.error);
+}
+
+async function removeTest(testId) {
+  if (!confirm('Remove this test?')) return;
+  await api('removeTest', { testId });
+  loadAdmin();
+}
+
+async function removeComment(email, noteTitle, message) {
+  if (!confirm('Delete this comment?')) return;
+  await api('removeComment', { email, noteTitle, message });
+  loadAdmin();
+}
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('studyroom_admin');
+  if (saved) {
+    try {
+      adminUser = JSON.parse(saved);
+      api('verifyAdmin', { email: adminUser.email }).then(r => {
+        if (r.ok) enterPanel();
+        else localStorage.removeItem('studyroom_admin');
+      });
+    } catch (e) { localStorage.removeItem('studyroom_admin'); }
+  }
+});
+</script>
+</body>
+  </html>
