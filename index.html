@@ -628,7 +628,7 @@
         </details>
         <details class="glass-card rounded-2xl p-6 reveal">
           <summary>Where do I ask doubts?</summary>
-          <p class="mt-3 text-slate-600">Pro members get access to our Telegram group: <b>t.me/+Udleh7bGIWo4YzZl</b></p>
+          <p class="mt-3 text-slate-600">Pro members get access to our Telegram group and then they can solve their doubts.</p>
         </details>
         <details class="glass-card rounded-2xl p-6 reveal">
           <summary>Who can take mock tests?</summary>
@@ -835,7 +835,7 @@
     </div>
     <input id="payTrx" placeholder="Transaction ID" class="w-full border-2 border-slate-200 focus:border-purple-500 rounded-xl px-4 py-3 mb-3 outline-none transition" />
     <input id="payScreenshot" type="file" accept="image/*" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 mb-2" />
-    <p class="text-xs text-slate-500 mb-6">⚠ Provide at least one: TrxID or screenshot.</p>
+    <p class="text-xs text-slate-500 mb-6">Provide at least one: TrxID or screenshot.</p>
     <div class="flex gap-3">
       <button onclick="closePayModal()" class="flex-1 border-2 border-slate-200 py-3 rounded-xl font-bold hover:bg-slate-50 transition">Cancel</button>
       <button onclick="submitPayment()" class="flex-1 btn-primary py-3 rounded-xl">Submit Payment</button>
@@ -1091,16 +1091,16 @@ function renderPlanContent(plan, status) {
   if (plan === 'Pro') {
     html += `<div class="p-5 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-2xl mb-3">
       <div class="font-bold text-lg mb-1">👥 Telegram Group — Doubt Solving</div>
-      <p class="text-sm text-slate-600 mb-3">Join to ask doubts and get help from peers & admin.</p>
+      <p class="text-sm text-slate-600 mb-3">Join to ask doubts and get help.</p>
       <a href="https://t.me/+Udleh7bGIWo4YzZl" target="_blank" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition">Join Group →</a>
     </div>`;
     html += `<div class="p-5 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl">
       <div class="font-bold text-lg mb-1">🎯 Unlimited Mock Tests</div>
-      <p class="text-sm text-slate-600">Timed tests & weekly leaderboard — included with Pro.</p>
+      <p class="text-sm text-slate-600">Timed tests & weekly leaderboard.</p>
     </div>`;
   } else {
     html = `<div class="p-5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-300 rounded-2xl">
-      <div class="font-bold text-lg">🥈 Basic Plan</div>
+      <div class="font-bold text-lg">Basic Plan</div>
       <p class="text-sm text-slate-600 mt-1">Upgrade to Pro for doubt-solving group + unlimited mock tests.</p>
     </div>`;
   }
