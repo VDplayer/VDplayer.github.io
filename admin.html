@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyRoom — Admin Panel</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #eef2f9;
+    color: #0f172a;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', 'Inter', sans-serif; letter-spacing: -0.02em; }
+
+  :root {
+    --sidebar-bg: linear-gradient(180deg, #0b1220 0%, #131c35 100%);
+    --primary: #6366f1;
+    --primary-2: #8b5cf6;
+    --primary-dark: #4f46e5;
+    --accent: #f472b6;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+    --border: rgba(226, 232, 240, 0.8);
+    --text-muted: #64748b;
+    --glow: 0 0 40px rgba(99, 102, 241, 0.35);
+  }
+
+  .bg-mesh {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(at 15% 10%, rgba(99, 102, 241, 0.12) 0px, transparent 55%),
+      radial-gradient(at 85% 5%, rgba(244, 114, 182, 0.10) 0px, transparent 55%),
+      radial-gradient(at 5% 90%, rgba(59, 130, 246, 0.10) 0px, transparent 55%),
+      radial-gradient(at 95% 95%, rgba(139, 92, 246, 0.12) 0px, transparent 55%),
+      #eef2f9;
+    animation: meshShift 25s ease-in-out infinite;
+  }
+  @keyframes meshShift {
+    0%, 100% { transform: scale(1) translate(0, 0); }
+    50% { transform: scale(1.08) translate(-2%, 2%); }
+  }
+
+  /* LOGIN */
+  .login-bg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-radius: 28px;
+    padding: 52px 44px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow:
+      0 4px 24px rgba(15, 23, 42, 0.04),
+      0 32px 80px rgba(99, 102, 241, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    position: relative;
+    overflow: hidden;
+  }
+  .login-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.4) 50%, transparent 60%);
+    animation: loginShine 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes loginShine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  }
+  .login-logo {
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #f472b6 100%);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 34px;
+    box-shadow:
+      0 12px 40px rgba(99, 102, 241, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    position: relative;
+    z-index: 1;
+  }
+  .login-title {
+    font-size: 34px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 22px 0 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .input-field {
+    width: 100%;
+    padding: 15px 18px;
+    border: 2px solid rgba(226, 232, 240, 0.9);
+    border-radius: 16px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.25s;
+    background: rgba(255, 255, 255, 0.8);
+    font-family: inherit;
+    position: relative;
+    z-index: 1;
+  }
+  .input-field:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.12);
+    transform: translateY(-1px);
+  }
+  .btn-signin {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow:
+      0 8px 24px rgba(99, 102, 241, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .btn-signin::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s;
+  }
+  .btn-signin:hover::before { left: 100%; }
+  .btn-signin:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(99, 102, 241, 0.55);
+  }
+
+  /* LAYOUT */
+  .admin-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--sidebar-bg);
+    color: #cbd5e1;
+    padding: 26px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 8px 0 40px rgba(15, 23, 42, 0.12);
+    z-index: 20;
+  }
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.25) 0px, transparent 60%);
+    pointer-events: none;
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px 22px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    margin-bottom: 22px;
+    position: relative;
+    z-index: 1;
+  }
+  .sidebar-brand-logo {
+    width: 44px; height: 44px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow:
+      0 8px 20px rgba(99, 102, 241, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+  }
+  .sidebar-brand-text h1 {
+    font-size: 17px;
+    color: white;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.3px;
+  }
+  .sidebar-brand-text p {
+    font-size: 10px;
+    color: #818cf8;
+    margin: 2px 0 0;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+  }
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    padding: 16px 14px 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+  }
+  .nav-item:hover {
+    background: rgba(148, 163, 184, 0.08);
+    color: #e2e8f0;
+    transform: translateX(3px);
+  }
+  .nav-item.active {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow:
+      0 8px 24px rgba(99, 102, 241, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  .nav-icon {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+    opacity: 0.95;
+    font-size: 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 50px;
+    min-width: 22px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5); }
+    50% { box-shadow: 0 4px 20px rgba(239, 68, 68, 0.8); }
+  }
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    position: relative;
+    z-index: 1;
+  }
+  .admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(148, 163, 184, 0.08);
+    margin-bottom: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+  }
+  .admin-avatar {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 800;
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  }
+  .admin-info { min-width: 0; flex: 1; }
+  .admin-info .name {
+    font-size: 13px;
+    color: white;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .admin-info .role { font-size: 11px; color: #64748b; margin-top: 1px; }
+  .btn-logout {
+    width: 100%;
+    padding: 11px;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #fca5a5;
+    font-weight: 700;
+    font-size: 13px;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+  .btn-logout:hover {
+    background: rgba(239, 68, 68, 0.18);
+    color: #fecaca;
+    transform: translateY(-1px);
+  }
+
+  /* MAIN */
+  .main-content {
+    padding: 32px 40px;
+    max-width: 1440px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .page-title {
+    font-size: 30px;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -0.8px;
+    background: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 5px 0 0;
+    font-weight: 500;
+  }
+  .top-avatar {
+    width: 44px; height: 44px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    box-shadow:
+      0 8px 20px rgba(99, 102, 241, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* PANEL */
+  .panel {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 22px;
+    padding: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow:
+      0 2px 8px rgba(15, 23, 42, 0.03),
+      0 20px 50px rgba(15, 23, 42, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    animation: panelFade 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  @keyframes panelFade {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  }
+  .panel-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    letter-spacing: -0.3px;
+  }
+  .panel-title-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(244, 114, 182, 0.15));
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+  .panel-count {
+    font-size: 11px;
+    font-weight: 800;
+    color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+    padding: 4px 11px;
+    border-radius: 50px;
+    letter-spacing: 0.3px;
+  }
+
+  /* SEARCH */
+  .search-box {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 320px;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 11px 15px 11px 40px;
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    border-radius: 12px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.25s;
+    background: rgba(248, 250, 252, 0.7);
+    font-family: inherit;
+    color: #0f172a;
+  }
+  .search-box input:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+  }
+  .search-box::before {
+    content: '🔍';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    opacity: 0.5;
+  }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; }
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    min-width: 640px;
+  }
+  .data-table thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    background: rgba(248, 250, 252, 0.9);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    white-space: nowrap;
+  }
+  .data-table thead th:first-child { border-radius: 12px 0 0 0; }
+  .data-table thead th:last-child { border-radius: 0 12px 0 0; }
+  .data-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.9);
+    vertical-align: middle;
+  }
+  .data-table tbody tr {
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.4);
+  }
+  .data-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+    transform: scale(1.001);
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+
+  .user-cell { display: flex; align-items: center; gap: 12px; }
+  .user-avatar {
+    width: 36px; height: 36px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center; justify-content: center;
+    font-weight: 800;
+    color: white;
+    font-size: 13px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  }
+  .user-avatar.basic { background: linear-gradient(135deg, #94a3b8, #64748b); }
+  .user-avatar.pro { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .user-avatar.none { background: linear-gradient(135deg, #cbd5e1, #94a3b8); }
+  .user-name { font-weight: 700; color: #0f172a; font-size: 13px; }
+  .user-email { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .badge-active { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; border-color: rgba(16, 185, 129, 0.2); }
+  .badge-pending { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border-color: rgba(245, 158, 11, 0.2); }
+  .badge-rejected { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border-color: rgba(239, 68, 68, 0.2); }
+  .badge-expired { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412; border-color: rgba(249, 115, 22, 0.2); }
+  .badge-none { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); color: #475569; border-color: rgba(148, 163, 184, 0.2); }
+  .badge-pro { background: linear-gradient(135deg, #fef3c7, #fcd34d); color: #78350f; border-color: rgba(245, 158, 11, 0.3); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2); }
+  .badge-basic { background: linear-gradient(135deg, #e2e8f0, #cbd5e1); color: #334155; border-color: rgba(148, 163, 184, 0.3); }
+
+  .streak-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 800;
+    color: #ea580c;
+    font-size: 13px;
+    background: linear-gradient(135deg, #fed7aa, #fdba74);
+    padding: 3px 9px;
+    border-radius: 50px;
+    border: 1px solid rgba(249, 115, 22, 0.25);
+  }
+
+  /* PAYMENT CARDS */
+  .payment-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .payment-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: linear-gradient(180deg, #6366f1, #8b5cf6);
+  }
+  .payment-card.pending::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+  .payment-card.approved::before { background: linear-gradient(180deg, #10b981, #059669); }
+  .payment-card.rejected::before { background: linear-gradient(180deg, #ef4444, #dc2626); }
+
+  .payment-card:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.12);
+    transform: translateY(-2px);
+  }
+  .payment-card.pending { background: linear-gradient(90deg, rgba(254, 243, 199, 0.4) 0%, rgba(255, 255, 255, 0.7) 8%); }
+  .payment-card.rejected { opacity: 0.85; }
+
+  .payment-info { flex: 1; min-width: 220px; }
+  .payment-email {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 15px;
+    margin-bottom: 5px;
+    word-break: break-all;
+  }
+  .payment-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-weight: 600;
+  }
+  .payment-meta .plan-tag {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+    padding: 3px 9px;
+    border-radius: 7px;
+    font-weight: 800;
+    color: #6366f1;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: 1px solid rgba(99, 102, 241, 0.15);
+  }
+  .payment-meta .trx-tag {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+    padding: 3px 9px;
+    border-radius: 7px;
+    font-weight: 700;
+    color: #047857;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+  }
+  .payment-links {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .payment-links a {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4f46e5;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.08);
+    transition: all 0.2s;
+    border: 1px solid rgba(99, 102, 241, 0.12);
+  }
+  .payment-links a:hover {
+    background: rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
+  }
+  .payment-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-approve {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  }
+  .btn-approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+  }
+  .btn-reject {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+  }
+  .btn-reject:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 11px 22px;
+    font-size: 13px;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s;
+  }
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
+  }
+  .btn-secondary {
+    background: rgba(248, 250, 252, 0.9);
+    color: #334155;
+    padding: 11px 22px;
+    font-size: 13px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+  }
+  .btn-secondary:hover {
+    background: white;
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #6366f1;
+    transform: translateY(-1px);
+  }
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+    padding: 7px 13px;
+    font-size: 11px;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+  }
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    transform: translateY(-1px);
+  }
+  .btn-filter {
+    padding: 8px 15px;
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 10px;
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    background: rgba(255, 255, 255, 0.7);
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.25s;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .btn-filter:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #6366f1;
+    transform: translateY(-1px);
+  }
+  .btn-filter.active {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+  }
+
+  /* FORMS */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 7px;
+    letter-spacing: 0.2px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    border-radius: 12px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.25s;
+    background: rgba(255, 255, 255, 0.8);
+    font-family: inherit;
+    color: #0f172a;
+  }
+  .form-input:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+  }
+  .form-input:disabled {
+    background: rgba(248, 250, 252, 0.9);
+    color: #64748b;
+    cursor: not-allowed;
+  }
+  textarea.form-input { resize: vertical; min-height: 100px; }
+  .form-hint { font-size: 11px; color: #94a3b8; margin: 7px 0 0; font-weight: 500; }
+
+  /* MODE SWITCH */
+  .mode-switch {
+    display: inline-flex;
+    background: rgba(241, 245, 249, 0.9);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 22px;
+    gap: 4px;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+  .mode-switch button {
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .mode-switch button.active {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  /* PROGRESS */
+  .progress-track {
+    height: 8px;
+    background: rgba(226, 232, 240, 0.9);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #f472b6);
+    background-size: 200% 100%;
+    width: 0%;
+    transition: width 0.4s;
+    border-radius: 5px;
+    animation: progressGlow 2s ease-in-out infinite;
+  }
+  @keyframes progressGlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* QUESTION BLOCK */
+  .q-block {
+    background: rgba(248, 250, 252, 0.8);
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    transition: all 0.25s;
+  }
+  .q-block:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.06);
+  }
+  .opt-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+  .opt-row input[type="radio"] {
+    width: 18px; height: 18px;
+    accent-color: #6366f1;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 50px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px; height: 80px;
+    border-radius: 20px;
+    font-size: 36px;
+    margin-bottom: 18px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(244, 114, 182, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.15);
+  }
+  .empty-state h4 { font-size: 16px; font-weight: 800; color: #334155; margin: 0 0 8px; }
+  .empty-state p { font-size: 13px; margin: 0; }
+
+  /* LIST ITEM */
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    margin-bottom: 10px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 14px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+  }
+  .list-item:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(99, 102, 241, 0.1);
+  }
+  .list-item-info { flex: 1; min-width: 180px; }
+  .list-item-title {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 14px;
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+  .list-item-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* CRYSTAL LOADER */
+  .crystal-loader-wrap {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px 36px;
+    box-shadow: 0 4px 20px rgba(31, 38, 135, 0.08), 0 1px 3px rgba(31, 38, 135, 0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-width: 160px;
+  }
+  .crystal-scene { width: 56px; height: 56px; perspective: 500px; display: flex; align-items: center; justify-content: center; }
+  .crystal-cube {
+    width: 40px; height: 40px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: crystalRotate 4s linear infinite;
+  }
+  .crystal-face {
+    position: absolute;
+    width: 40px; height: 40px;
+    border: 1.5px solid #6366f1;
+    background: rgba(99, 102, 241, 0.08);
+    box-shadow: inset 0 0 12px rgba(99, 102, 241, 0.35), 0 0 12px rgba(99, 102, 241, 0.15);
+  }
+  .crystal-front  { transform: translateZ(20px); }
+  .crystal-back   { transform: translateZ(-20px) rotateY(180deg); }
+  .crystal-right  {
+    transform: rotateY(90deg) translateZ(20px);
+    border-color: #f472b6;
+    background: rgba(244, 114, 182, 0.08);
+    box-shadow: inset 0 0 12px rgba(244, 114, 182, 0.35), 0 0 12px rgba(244, 114, 182, 0.15);
+  }
+  .crystal-left   { transform: rotateY(-90deg) translateZ(20px); }
+  .crystal-top    {
+    transform: rotateX(90deg) translateZ(20px);
+    border-color: #60a5fa;
+    background: rgba(96, 165, 250, 0.08);
+    box-shadow: inset 0 0 12px rgba(96, 165, 250, 0.35), 0 0 12px rgba(96, 165, 250, 0.15);
+  }
+  .crystal-bottom { transform: rotateX(-90deg) translateZ(20px); }
+  @keyframes crystalRotate {
+    0%   { transform: rotateX(0)    rotateY(0); }
+    100% { transform: rotateX(360deg) rotateY(360deg); }
+  }
+  .crystal-text {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: #64748b;
+    text-transform: uppercase;
+    display: flex;
+    gap: 1px;
+  }
+  .crystal-text span {
+    display: inline-block;
+    animation: crystalBounce 1.4s ease-in-out infinite;
+  }
+  .crystal-text span:nth-child(1)  { animation-delay: 0s; }
+  .crystal-text span:nth-child(2)  { animation-delay: 0.08s; }
+  .crystal-text span:nth-child(3)  { animation-delay: 0.16s; }
+  .crystal-text span:nth-child(4)  { animation-delay: 0.24s; }
+  .crystal-text span:nth-child(5)  { animation-delay: 0.32s; }
+  .crystal-text span:nth-child(6)  { animation-delay: 0.40s; }
+  .crystal-text span:nth-child(7)  { animation-delay: 0.48s; }
+  .crystal-text span:nth-child(8)  { animation-delay: 0.56s; }
+  .crystal-text span:nth-child(9)  { animation-delay: 0.64s; }
+  .crystal-text span:nth-child(10) { animation-delay: 0.72s; }
+  .crystal-text span:nth-child(11) { animation-delay: 0.80s; }
+  .crystal-text .crystal-space { width: 4px; animation: none; }
+  @keyframes crystalBounce {
+    0%, 60%, 100% { transform: translateY(0); color: #64748b; }
+    30% { transform: translateY(-3px); color: #6366f1; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .admin-layout { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 270px;
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+      height: 100vh;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .mobile-menu-btn { display: flex !important; }
+    .main-content { padding: 22px 18px; }
+    .page-title { font-size: 24px; }
+    .panel { padding: 18px; }
+    .login-card { padding: 40px 28px; }
+    .login-title { font-size: 28px; }
+  }
+  .mobile-menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(226, 232, 240, 0.9);
+    cursor: pointer;
+    font-size: 18px;
+    margin-right: 12px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 15;
+  }
+  .sidebar-overlay.open { display: block; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #64748b; background-clip: content-box; }
+  .sidebar::-webkit-scrollbar-thumb { background: #334155; background-clip: content-box; }
+
+  /* ANALYSIS GRID */
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .analysis-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 18px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 2px 8px rgba(15, 23, 42, 0.03),
+      0 12px 32px rgba(15, 23, 42, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  .analysis-card::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -50%;
+    width: 150%; height: 150%;
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .analysis-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow:
+      0 4px 12px rgba(15, 23, 42, 0.04),
+      0 20px 50px rgba(99, 102, 241, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  .analysis-card:hover::before { opacity: 1; }
+  .analysis-card .ac-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+  .analysis-card .ac-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center; justify-content: center;
+    font-size: 19px;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .analysis-card .ac-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .analysis-card .ac-value {
+    font-size: 30px;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -1px;
+    line-height: 1;
+    font-family: 'Space Grotesk', sans-serif;
+    position: relative;
+    z-index: 1;
+  }
+  .analysis-card .ac-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 8px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-bg">
+  <div class="login-card">
+    <div style="text-align: center; position: relative; z-index: 1;">
+      <div class="login-logo">🔐</div>
+      <h1 class="login-title">Admin Access</h1>
+      <p style="color: #64748b; font-size: 14px; margin: 0 0 34px; font-weight: 500;">Authorized personnel only</p>
+    </div>
+
+    <div class="form-group" style="position: relative; z-index: 1;">
+      <label class="form-label">Email Address</label>
+      <input id="admEmail" type="email" class="input-field" placeholder="admin@studyroom.com" autocomplete="email" />
+    </div>
+
+    <div class="form-group" style="position: relative; z-index: 1;">
+      <label class="form-label">Password</label>
+      <input id="admPass" type="password" class="input-field" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()" />
+    </div>
+
+    <p id="admErr" style="color: #dc2626; font-size: 13px; margin: 0 0 16px; font-weight: 700; position: relative; z-index: 1;"></p>
+
+    <button onclick="adminLogin()" id="loginBtn" class="btn-signin" style="position: relative; z-index: 1;">Sign In →</button>
+
+    <div style="text-align: center; margin-top: 26px; position: relative; z-index: 1;">
+      <a href="index.html" style="font-size: 13px; color: #64748b; text-decoration: none; font-weight: 700;">← Back to site</a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PANEL -->
+<div id="panelScreen" class="admin-layout" style="display:none;">
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">📚</div>
+      <div class="sidebar-brand-text">
+        <h1>StudyRoom</h1>
+        <p>Admin Panel</p>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">Insights</div>
+    <button onclick="adminTab('analysis')" id="tabBtn-analysis" class="nav-item active">
+      <span class="nav-icon">📊</span>
+      <span>Analysis</span>
+    </button>
+    <button onclick="adminTab('subs')" id="tabBtn-subs" class="nav-item">
+      <span class="nav-icon">👥</span>
+      <span>Subscribers</span>
+    </button>
+    <button onclick="adminTab('pays')" id="tabBtn-pays" class="nav-item">
+      <span class="nav-icon">💳</span>
+      <span>Payments</span>
+      <span id="pendingBadge" class="nav-badge" style="display:none;">0</span>
+    </button>
+
+    <div class="sidebar-section-label">Content</div>
+    <button onclick="adminTab('notes')" id="tabBtn-notes" class="nav-item">
+      <span class="nav-icon">📄</span>
+      <span>Notes</span>
+    </button>
+    <button onclick="adminTab('tests')" id="tabBtn-tests" class="nav-item">
+      <span class="nav-icon">🧪</span>
+      <span>Mock Tests</span>
+    </button>
+    <button onclick="adminTab('updates')" id="tabBtn-updates" class="nav-item">
+      <span class="nav-icon">📢</span>
+      <span>Updates</span>
+    </button>
+
+    <div class="sidebar-section-label">Community</div>
+    <button onclick="adminTab('comments')" id="tabBtn-comments" class="nav-item">
+      <span class="nav-icon">💬</span>
+      <span>Comments</span>
+    </button>
+
+    <div class="sidebar-footer">
+      <div class="admin-profile">
+        <div class="admin-avatar" id="adminAvatar">T</div>
+        <div class="admin-info">
+          <div class="name" id="adminName">Tartil</div>
+          <div class="role">Administrator</div>
+        </div>
+      </div>
+      <button onclick="adminLogout()" class="btn-logout">
+        <span>🚪</span>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <main class="main-content">
+    <div class="top-bar">
+      <div style="display: flex; align-items: center;">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <div>
+          <h1 class="page-title" id="pageTitle">Analysis</h1>
+          <p class="page-subtitle" id="pageSubtitle">Overview of StudyRoom</p>
+        </div>
+      </div>
+      <div class="top-avatar" id="topAvatar">T</div>
+    </div>
+
+    <div id="admin-analysis" class="admin-content">
+      <div id="analysisContent">
+        <div class="empty-state"><div class="icon">📊</div><h4>Loading data...</h4></div>
+      </div>
+    </div>
+
+    <div id="admin-subs" class="admin-content" style="display:none;"></div>
+    <div id="admin-pays" class="admin-content" style="display:none;"></div>
+    <div id="admin-notes" class="admin-content" style="display:none;"></div>
+    <div id="admin-tests" class="admin-content" style="display:none;"></div>
+    <div id="admin-updates" class="admin-content" style="display:none;"></div>
+    <div id="admin-comments" class="admin-content" style="display:none;"></div>
+  </main>
+</div>
+
+<!-- CRYSTAL LOADER -->
+<div id="loader" class="fixed inset-0 z-[100] items-center justify-center" style="display:none; background: rgba(15,23,42,0.5); backdrop-filter: blur(8px);">
+  <div class="crystal-loader-wrap">
+    <div class="crystal-scene">
+      <div class="crystal-cube">
+        <div class="crystal-face crystal-front"></div>
+        <div class="crystal-face crystal-back"></div>
+        <div class="crystal-face crystal-right"></div>
+        <div class="crystal-face crystal-left"></div>
+        <div class="crystal-face crystal-top"></div>
+        <div class="crystal-face crystal-bottom"></div>
+      </div>
+    </div>
+    <div class="crystal-text">
+      <span>P</span><span>l</span><span>e</span><span>a</span><span>s</span><span>e</span>
+      <span class="crystal-space">&nbsp;</span>
+      <span>W</span><span>a</span><span>i</span><span>t</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbzM6pKA9gRPSxeuwBtxWAL2TFfuTyTqy7IdD9MeBWPuyhT6WvNJaNJEvNGNOBkzADBssA/exec";
+let adminUser = null;
+let newQuestions = [{ question: '', options: ['', '', '', ''], correct: 0 }];
+let noteUploadMode = 'pdf';
+let allUsers = [];
+let allPayments = [];
+let allNotes = [];
+let allTests = [];
+let allUpdates = [];
+let allComments = [];
+let currentRevenue = 0;
+
+async function api(action, data = {}) {
+  showLoader(true);
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...data })
+    });
+    return await r.json();
+  } catch (e) { console.error('API Error:', e); return { error: 'Network error' }; }
+  finally { showLoader(false); }
+}
+
+function showLoader(v) {
+  const el = document.getElementById('loader');
+  el.style.display = v ? 'flex' : 'none';
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+
+async function adminLogin() {
+  const email = document.getElementById('admEmail').value.trim();
+  const pass  = document.getElementById('admPass').value;
+  const errEl = document.getElementById('admErr');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Please fill both fields'; return; }
+
+  document.getElementById('loginBtn').textContent = 'Checking...';
+  const res = await api('adminLogin', { email, pass });
+  document.getElementById('loginBtn').textContent = 'Sign In →';
+
+  if (res.ok) {
+    adminUser = { email, loggedInAt: Date.now() };
+    localStorage.setItem('studyroom_admin', JSON.stringify(adminUser));
+    enterPanel();
+  } else {
+    errEl.textContent = res.error || 'Invalid credentials';
+  }
+}
+
+function enterPanel() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('panelScreen').style.display = 'grid';
+
+  document.getElementById('adminAvatar').textContent = 'T';
+  document.getElementById('topAvatar').textContent = 'T';
+  document.getElementById('adminName').textContent = 'Tartil';
+
+  adminTab('analysis');
+  loadAdmin();
+}
+
+function adminLogout() {
+  localStorage.removeItem('studyroom_admin');
+  adminUser = null;
+  document.getElementById('panelScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('admEmail').value = '';
+  document.getElementById('admPass').value = '';
+}
+
+const TAB_META = {
+  analysis: { title: 'Analysis', subtitle: 'Overview of StudyRoom' },
+  subs:     { title: 'Subscribers', subtitle: 'Manage all registered users' },
+  pays:     { title: 'Payments', subtitle: 'Review and approve payments' },
+  notes:    { title: 'Notes', subtitle: 'Upload and manage study materials' },
+  tests:    { title: 'Mock Tests', subtitle: 'Create Pro-only timed tests' },
+  updates:  { title: 'Updates', subtitle: 'Broadcast messages to all users' },
+  comments: { title: 'Comments', subtitle: 'Moderate discussion forum' }
+};
+
+function adminTab(name) {
+  document.querySelectorAll('.admin-content').forEach(c => c.style.display = 'none');
+  document.getElementById('admin-' + name).style.display = 'block';
+
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('tabBtn-' + name).classList.add('active');
+
+  const meta = TAB_META[name] || {};
+  document.getElementById('pageTitle').textContent = meta.title || '';
+  document.getElementById('pageSubtitle').textContent = meta.subtitle || '';
+
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+async function loadAdmin() {
+  const res = await api('adminData');
+  if (res.error) return alert(res.error);
+
+  allUsers = res.users || [];
+  allPayments = res.payments || [];
+  allNotes = res.notes || [];
+  allTests = res.tests || [];
+  allUpdates = res.updates || [];
+  allComments = res.comments || [];
+  currentRevenue = res.revenue || 0;
+
+  const pendingCount = allPayments.filter(p => p.status === 'Pending').length;
+  const badge = document.getElementById('pendingBadge');
+  if (pendingCount > 0) {
+    badge.textContent = pendingCount;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  renderAnalysis();
+  renderSubscribers();
+  renderPayments();
+  renderNotes();
+  renderTests();
+  renderUpdates();
+  renderComments();
+}
+
+function renderAnalysis() {
+  const activeCount = allUsers.filter(u => u.status === 'active').length;
+  const pendingCount = allPayments.filter(p => p.status === 'Pending').length;
+  const approvedCount = allPayments.filter(p => p.status === 'Approved').length;
+  const rejectedCount = allPayments.filter(p => p.status === 'Rejected').length;
+  const approvalRate = (approvedCount + rejectedCount) > 0
+    ? Math.round((approvedCount / (approvedCount + rejectedCount)) * 100) : 0;
+
+  document.getElementById('analysisContent').innerHTML = `
+    <div class="analysis-grid">
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-icon" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">💰</div>
+          <div class="ac-label">Total Revenue</div>
+        </div>
+        <div class="ac-value">${currentRevenue.toLocaleString()}<small style="font-size:15px;font-weight:800;color:#94a3b8;margin-left:5px;">৳</small></div>
+      </div>
+
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">👥</div>
+          <div class="ac-label">Active Subscribers</div>
+        </div>
+        <div class="ac-value">${activeCount}</div>
+      </div>
+
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">⏳</div>
+          <div class="ac-label">Pending Payments</div>
+        </div>
+        <div class="ac-value">${pendingCount}</div>
+      </div>
+
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-icon" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">📈</div>
+          <div class="ac-label">Approval Rate</div>
+        </div>
+        <div class="ac-value">${approvalRate}<small style="font-size:15px;font-weight:800;color:#94a3b8;margin-left:3px;">%</small></div>
+        <div class="ac-sub">${approvedCount} approved · ${rejectedCount} rejected</div>
+      </div>
+    </div>
+
+    <div class="analysis-grid">
+      <div class="analysis-card">
+        <div class="ac-header">
+          <div class="ac-icon" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">📄</div>
+          <div class="ac-label">Content</div>
+        </div>
+        <div class="ac-value">${allNotes.length + allTests.length}</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:6px;">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">⚡</span>
+          Quick Actions
+        </h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+        <button onclick="adminTab('pays')" class="btn btn-primary" style="justify-content:center; padding:16px; font-size:13px;">💳 Review Payments</button>
+        <button onclick="adminTab('notes')" class="btn btn-primary" style="justify-content:center; padding:16px; font-size:13px;">📄 Upload Notes</button>
+        <button onclick="adminTab('tests')" class="btn btn-primary" style="justify-content:center; padding:16px; font-size:13px;">🧪 Create Test</button>
+        <button onclick="adminTab('updates')" class="btn btn-primary" style="justify-content:center; padding:16px; font-size:13px;">📢 Post Update</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderSubscribers() {
+  const latestPay = {};
+  allPayments.forEach(p => {
+    const e = (p.email || '').toLowerCase();
+    if (!latestPay[e]) latestPay[e] = p;
+  });
+
+  document.getElementById('admin-subs').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">👥</span>
+          All Subscribers
+          <span class="panel-count">${allUsers.length}</span>
+        </h2>
+        <div class="search-box">
+          <input type="text" id="subsSearch" placeholder="Search by name or email..." oninput="filterSubs(this.value)" />
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th style="text-align: center;">Plan</th>
+              <th style="text-align: center;">Status</th>
+              <th style="text-align: center;">Expires</th>
+              <th style="text-align: center;">Streak</th>
+              <th style="text-align: center;">Joined</th>
+            </tr>
+          </thead>
+          <tbody id="subsBody">
+            ${renderSubsRows(allUsers, latestPay)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderSubsRows(users, latestPay) {
+  if (!users.length) {
+    return `<tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div><h4>No subscribers yet</h4><p>Users will appear here after they sign up</p></div></td></tr>`;
+  }
+
+  return users.map(u => {
+    const k = (u.email || '').toLowerCase();
+    const pay = latestPay[k];
+    let displayPlan = u.plan || (pay ? pay.plan : '') || '—';
+    let status = 'none';
+    if (u.status === 'active') status = 'active';
+    else if (u.status === 'expired') status = 'expired';
+    else if (pay) status = (pay.status || '').toLowerCase();
+    else status = u.status || 'none';
+
+    let statusBadge = '';
+    if (status === 'active' || status === 'approved') statusBadge = `<span class="badge badge-active">● Active</span>`;
+    else if (status === 'pending') statusBadge = `<span class="badge badge-pending">● Pending</span>`;
+    else if (status === 'rejected') statusBadge = `<span class="badge badge-rejected">● Rejected</span>`;
+    else if (status === 'expired') statusBadge = `<span class="badge badge-expired">● Expired</span>`;
+    else statusBadge = `<span class="badge badge-none">● None</span>`;
+
+    let planBadge = '';
+    if (displayPlan === 'Pro') planBadge = `<span class="badge badge-pro">⭐ Pro</span>`;
+    else if (displayPlan === 'Basic') planBadge = `<span class="badge badge-basic">🥈 Basic</span>`;
+    else planBadge = `<span style="color: #94a3b8;">—</span>`;
+
+    const avatarClass = displayPlan === 'Pro' ? 'pro' : displayPlan === 'Basic' ? 'basic' : 'none';
+    const initial = (u.name || u.email || '?')[0].toUpperCase();
+    const exp = u.expiresAt ? new Date(u.expiresAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '—';
+    const joined = u.joined ? new Date(u.joined).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : '—';
+
+    return `
+      <tr data-search="${(u.name + ' ' + u.email).toLowerCase()}">
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar ${avatarClass}">${initial}</div>
+            <div>
+              <div class="user-name">${u.name || 'Unnamed'}</div>
+              <div class="user-email">${u.email}</div>
+            </div>
+          </div>
+        </td>
+        <td style="text-align: center;">${planBadge}</td>
+        <td style="text-align: center;">${statusBadge}</td>
+        <td style="text-align: center; font-size: 12px; color: #475569; font-weight: 600;">${exp}</td>
+        <td style="text-align: center;">
+          ${u.streak ? `<span class="streak-cell">🔥 ${u.streak}</span>` : `<span style="color: #cbd5e1;">—</span>`}
+        </td>
+        <td style="text-align: center; font-size: 12px; color: #94a3b8; font-weight: 600;">${joined}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterSubs(query) {
+  const q = query.toLowerCase().trim();
+  const rows = document.querySelectorAll('#subsBody tr');
+  rows.forEach(r => {
+    const s = r.dataset.search || '';
+    r.style.display = s.includes(q) ? '' : 'none';
+  });
+}
+
+function renderPayments() {
+  document.getElementById('admin-pays').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">💳</span>
+          Payments
+          <span class="panel-count">${allPayments.length}</span>
+        </h2>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button onclick="filterPayments('all')" id="payFilter-all" class="btn-filter active">All</button>
+          <button onclick="filterPayments('pending')" id="payFilter-pending" class="btn-filter">Pending</button>
+          <button onclick="filterPayments('approved')" id="payFilter-approved" class="btn-filter">Approved</button>
+          <button onclick="filterPayments('rejected')" id="payFilter-rejected" class="btn-filter">Rejected</button>
+        </div>
+      </div>
+      <div id="paymentsList">
+        ${renderPaymentsList(allPayments)}
+      </div>
+    </div>
+  `;
+}
+
+function renderPaymentsList(payments) {
+  if (!payments.length) {
+    return `<div class="empty-state"><div class="icon">💳</div><h4>No payments</h4><p>Payment submissions will appear here</p></div>`;
+  }
+
+  return payments.map(p => {
+    const statusClass = p.status === 'Approved' ? 'approved' : p.status === 'Rejected' ? 'rejected' : 'pending';
+    let statusBadge = '';
+    if (p.status === 'Approved') statusBadge = `<span class="badge badge-active">✓ Approved</span>`;
+    else if (p.status === 'Rejected') statusBadge = `<span class="badge badge-rejected">✕ Rejected</span>`;
+    else statusBadge = `<span class="badge badge-pending">⏳ Pending</span>`;
+
+    const date = p.date ? new Date(p.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+
+    return `
+      <div class="payment-card ${statusClass}">
+        <div class="payment-info">
+          <div class="payment-email">${p.email}</div>
+          <div class="payment-meta">
+            <span class="plan-tag">${p.plan}</span>
+            <span style="font-weight: 900; color: #059669; font-size: 13px;">${p.amount}৳</span>
+            ${p.trxId ? `<span class="trx-tag">${p.trxId}</span>` : ''}
+            <span>·</span>
+            <span>${date}</span>
+          </div>
+          ${(p.screenshot || p.invoiceUrl) ? `
+            <div class="payment-links">
+              ${p.screenshot ? `<a href="${p.screenshot}" target="_blank">📷 View Screenshot</a>` : ''}
+              ${p.invoiceUrl ? `<a href="${p.invoiceUrl}" target="_blank">📄 Invoice</a>` : ''}
+            </div>
+          ` : ''}
+        </div>
+        <div class="payment-actions">
+          ${statusBadge}
+          ${p.status === 'Pending' ? `
+            <button onclick="approvePay('${p.id}')" class="btn btn-approve">✓ Approve</button>
+            <button onclick="rejectPay('${p.id}')" class="btn btn-reject">✕ Reject</button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterPayments(filter) {
+  ['all','pending','approved','rejected'].forEach(f => {
+    const btn = document.getElementById('payFilter-' + f);
+    if (btn) btn.classList.toggle('active', f === filter);
+  });
+
+  let filtered = allPayments;
+  if (filter === 'pending') filtered = allPayments.filter(p => p.status === 'Pending');
+  else if (filter === 'approved') filtered = allPayments.filter(p => p.status === 'Approved');
+  else if (filter === 'rejected') filtered = allPayments.filter(p => p.status === 'Rejected');
+
+  document.getElementById('paymentsList').innerHTML = renderPaymentsList(filtered);
+}
+
+function renderNotes() {
+  document.getElementById('admin-notes').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">📄</span>
+          Upload Notes
+        </h2>
+      </div>
+      <p style="color: #64748b; font-size: 13px; margin: 0 0 20px; font-weight: 500;">Notes are visible to all Basic & Pro users.</p>
+
+      <div style="border: 1.5px solid rgba(226, 232, 240, 0.9); border-radius: 16px; padding: 22px; max-width: 660px; margin-bottom: 26px; background: rgba(255, 255, 255, 0.6);">
+        <div class="mode-switch">
+          <button onclick="switchNoteMode('pdf')" id="noteModePdf" class="active">📎 Upload PDF</button>
+          <button onclick="switchNoteMode('link')" id="noteModeLink">🔗 Drive Link</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Note Title</label>
+          <input id="noteTitle" class="form-input" placeholder="e.g. Physics Chapter 1" />
+        </div>
+
+        <div id="pdfPanel">
+          <div class="form-group">
+            <label class="form-label">PDF File</label>
+            <input id="notePdf" type="file" accept=".pdf" onchange="onPdfPick(this)" class="form-input" style="padding: 10px 14px;" />
+            <p class="form-hint">Max 20 MB</p>
+          </div>
+          <div id="uploadProgress" style="display:none;">
+            <div style="font-size: 11px; color: #475569; font-weight: 800;" id="progressText">Preparing...</div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+        </div>
+
+        <div id="linkPanel" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Google Drive Link</label>
+            <input id="noteLink" class="form-input" placeholder="https://drive.google.com/file/d/.../view" />
+            <p class="form-hint">Make sure it's shared as "Anyone with the link can view"</p>
+          </div>
+        </div>
+
+        <button onclick="saveNote()" class="btn btn-primary" style="width: 100%; justify-content: center;">Save Note</button>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0 0 16px;">Current Notes (${allNotes.length})</h3>
+      <div>${renderNotesList(allNotes)}</div>
+    </div>
+  `;
+}
+
+function renderNotesList(notes) {
+  if (!notes.length) {
+    return `<div class="empty-state"><div class="icon">📄</div><h4>No notes yet</h4><p>Upload your first note to get started</p></div>`;
+  }
+  return notes.map(n => `
+    <div class="list-item">
+      <div class="list-item-info">
+        <div class="list-item-title">📄 ${n.title}</div>
+        <div class="list-item-meta"><span>Visible to all users</span></div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <a href="${n.link}" target="_blank" class="btn btn-secondary" style="text-decoration: none;">Open</a>
+        <button onclick="removeNote('${n.tier}','${(n.title || '').replace(/'/g, "\\'")}')" class="btn btn-danger">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTests() {
+  document.getElementById('admin-tests').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">🧪</span>
+          Create Mock Test
+          <span class="badge badge-pro" style="font-size: 10px; padding: 4px 11px;">🔒 Pro Only</span>
+        </h2>
+      </div>
+
+      <div style="border: 1.5px solid rgba(226, 232, 240, 0.9); border-radius: 16px; padding: 22px; margin-bottom: 26px; background: rgba(255, 255, 255, 0.6);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div class="form-group" style="margin: 0;">
+            <label class="form-label">Test Title</label>
+            <input id="testTitle" class="form-input" placeholder="e.g. Physics Mock 1" />
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label class="form-label">Duration (min)</label>
+            <input id="testDuration" type="number" value="10" min="1" class="form-input" />
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label class="form-label">Visible To</label>
+            <input value="Pro Users Only" disabled class="form-input" />
+          </div>
+        </div>
+
+        <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin: 20px 0 14px; letter-spacing: 0.3px;">Questions</h4>
+        <div id="questionsContainer"></div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
+          <button onclick="addQuestion()" class="btn btn-secondary">+ Add Question</button>
+          <button onclick="submitTest()" class="btn btn-primary">Save Test</button>
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0 0 16px;">Existing Tests (${allTests.length})</h3>
+      <div>${renderTestsList(allTests)}</div>
+    </div>
+  `;
+  renderQuestions();
+}
+
+function renderTestsList(tests) {
+  if (!tests.length) {
+    return `<div class="empty-state"><div class="icon">🧪</div><h4>No tests yet</h4><p>Create your first mock test above</p></div>`;
+  }
+  return tests.map(t => `
+    <div class="list-item">
+      <div class="list-item-info">
+        <div class="list-item-title">${t.title}</div>
+        <div class="list-item-meta">
+          <span>${t.questionCount} questions</span>
+          <span>·</span>
+          <span>${t.duration} min</span>
+          <span>·</span>
+          <span class="badge badge-pro" style="font-size: 9px; padding: 3px 8px;">Pro</span>
+        </div>
+      </div>
+      <button onclick="removeTest('${t.id}')" class="btn btn-danger">Remove</button>
+    </div>
+  `).join('');
+}
+
+function renderUpdates() {
+  document.getElementById('admin-updates').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">📢</span>
+          Post Update to All Users
+        </h2>
+      </div>
+
+      <div style="border: 1.5px solid rgba(226, 232, 240, 0.9); border-radius: 16px; padding: 22px; max-width: 660px; margin-bottom: 26px; background: rgba(255, 255, 255, 0.6);">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input id="updTitle" class="form-input" placeholder="e.g. New notes uploaded" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <textarea id="updMsg" class="form-input" placeholder="Write your message..." rows="4"></textarea>
+        </div>
+        <button onclick="postUpdate()" class="btn btn-primary" style="width: 100%; justify-content: center;">Post Update</button>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0 0 16px;">Recent Updates (${allUpdates.length})</h3>
+      <div>${renderUpdatesList(allUpdates)}</div>
+    </div>
+  `;
+}
+
+function renderUpdatesList(updates) {
+  if (!updates.length) {
+    return `<div class="empty-state"><div class="icon">📢</div><h4>No updates yet</h4><p>Post your first announcement above</p></div>`;
+  }
+  return updates.map(u => `
+    <div class="list-item" style="align-items: flex-start;">
+      <div class="list-item-info">
+        <div class="list-item-title">${u.title}</div>
+        <div style="font-size: 13px; color: #64748b; margin-top: 6px; line-height: 1.5;">${u.message}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderComments() {
+  document.getElementById('admin-comments').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">💬</span>
+          Recent Comments
+          <span class="panel-count">${allComments.length}</span>
+        </h2>
+      </div>
+      <div>${renderCommentsList(allComments)}</div>
+    </div>
+  `;
+}
+
+function renderCommentsList(comments) {
+  if (!comments.length) {
+    return `<div class="empty-state"><div class="icon">💬</div><h4>No comments yet</h4><p>Student discussions will appear here</p></div>`;
+  }
+  return comments.map(c => `
+    <div class="list-item" style="align-items: flex-start;">
+      <div class="list-item-info">
+        <div class="list-item-meta" style="margin-bottom: 8px;">
+          <span style="font-weight: 800; color: #334155;">${c.email}</span>
+          <span>on</span>
+          <span style="font-weight: 800; color: #6366f1;">${c.noteTitle}</span>
+          <span>·</span>
+          <span>${new Date(c.date).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+        <div style="font-size: 13px; color: #334155; line-height: 1.6;">${(c.message || '').replace(/</g,'&lt;')}</div>
+      </div>
+      <button onclick="removeComment('${c.email}','${(c.noteTitle || '').replace(/'/g, "\\'")}','${(c.message || '').replace(/'/g, "\\'").replace(/\n/g, ' ')}')" class="btn btn-danger">Delete</button>
+    </div>
+  `).join('');
+}
+
+function switchNoteMode(mode) {
+  noteUploadMode = mode;
+  const pdfBtn = document.getElementById('noteModePdf');
+  const linkBtn = document.getElementById('noteModeLink');
+  const pdfPanel = document.getElementById('pdfPanel');
+  const linkPanel = document.getElementById('linkPanel');
+  if (mode === 'pdf') {
+    pdfBtn.classList.add('active'); linkBtn.classList.remove('active');
+    pdfPanel.style.display = 'block'; linkPanel.style.display = 'none';
+  } else {
+    linkBtn.classList.add('active'); pdfBtn.classList.remove('active');
+    linkPanel.style.display = 'block'; pdfPanel.style.display = 'none';
+  }
+}
+
+function onPdfPick(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    alert('PDF too large (max 20 MB)');
+    input.value = '';
+  }
+}
+
+async function saveNote() {
+  const title = document.getElementById('noteTitle').value.trim();
+  if (!title) return alert('Please enter a note title');
+
+  if (noteUploadMode === 'link') {
+    const link = document.getElementById('noteLink').value.trim();
+    if (!link) return alert('Please paste a Google Drive link');
+    if (link.indexOf('drive.google.com') === -1 && link.indexOf('docs.google.com') === -1) {
+      return alert('Please paste a valid Google Drive link');
+    }
+    const res = await api('addNoteFromLink', { title, link });
+    if (res.success) { alert('✅ Note saved!'); loadAdmin(); }
+    else alert('❌ ' + res.error);
+    return;
+  }
+
+  const file = document.getElementById('notePdf').files[0];
+  if (!file) return alert('Please choose a PDF file');
+
+  const progressWrap = document.getElementById('uploadProgress');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  progressWrap.style.display = 'block';
+  progressFill.style.width = '0%';
+  progressText.textContent = 'Reading file...';
+
+  const reader = new FileReader();
+  reader.onprogress = (e) => {
+    if (e.lengthComputable) {
+      const pct = Math.round((e.loaded / e.total) * 40);
+      progressFill.style.width = pct + '%';
+      progressText.textContent = `Reading... ${Math.round(pct * 2.5)}%`;
+    }
+  };
+  reader.onload = async (e) => {
+    progressFill.style.width = '50%';
+    progressText.textContent = 'Uploading to Google Drive...';
+    try {
+      const res = await api('addNote', { title, pdf: e.target.result });
+      if (res.success) {
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Complete!';
+        setTimeout(() => { alert('✅ Note uploaded!'); loadAdmin(); }, 400);
+      } else {
+        progressWrap.style.display = 'none';
+        alert('❌ ' + (res.error || 'Upload failed'));
+      }
+    } catch (err) {
+      progressWrap.style.display = 'none';
+      alert('❌ Network error. Try Drive link option instead.');
+    }
+  };
+  reader.onerror = () => {
+    progressWrap.style.display = 'none';
+    alert('❌ Failed to read file');
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderQuestions() {
+  const el = document.getElementById('questionsContainer');
+  if (!el) return;
+  el.innerHTML = newQuestions.map((q, i) => `
+    <div class="q-block">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
+        <div style="font-weight: 800; font-size: 13px; color: #334155;">Question ${i+1}</div>
+        ${newQuestions.length > 1 ? `<button onclick="removeQuestion(${i})" style="background: none; border: none; color: #dc2626; font-size: 11px; font-weight: 800; cursor: pointer; font-family: inherit;">Remove</button>` : ''}
+      </div>
+      <input placeholder="Question text" value="${(q.question || '').replace(/"/g, '&quot;')}" oninput="newQuestions[${i}].question = this.value" class="form-input" style="margin-bottom: 10px;" />
+      ${q.options.map((opt, j) => `
+        <div class="opt-row">
+          <input type="radio" name="correct${i}" ${q.correct === j ? 'checked' : ''} onchange="newQuestions[${i}].correct = ${j}" />
+          <input placeholder="Option ${j+1}" value="${(opt || '').replace(/"/g, '&quot;')}" oninput="newQuestions[${i}].options[${j}] = this.value" class="form-input" />
+        </div>
+      `).join('')}
+      <div style="font-size: 11px; color: #64748b; margin-top: 10px; font-weight: 700;">↑ Click a radio to mark the correct answer</div>
+    </div>
+  `).join('');
+}
+
+function addQuestion() {
+  newQuestions.push({ question: '', options: ['', '', '', ''], correct: 0 });
+  renderQuestions();
+}
+function removeQuestion(i) {
+  newQuestions.splice(i, 1);
+  renderQuestions();
+}
+
+async function approvePay(id) { await api('approvePayment', { id }); loadAdmin(); }
+async function rejectPay(id)  { await api('rejectPayment', { id }); loadAdmin(); }
+
+async function postUpdate() {
+  const title = document.getElementById('updTitle').value.trim();
+  const message = document.getElementById('updMsg').value.trim();
+  if (!title) return alert('Title required');
+  await api('postUpdate', { title, message });
+  alert('✅ Posted!');
+  loadAdmin();
+}
+
+async function removeNote(tier, title) {
+  if (!confirm('Remove this note?')) return;
+  await api('removeNote', { tier, title });
+  loadAdmin();
+}
+
+async function submitTest() {
+  const title = document.getElementById('testTitle').value.trim();
+  const duration = Number(document.getElementById('testDuration').value) || 10;
+  if (!title) return alert('Test title required');
+  const questions = newQuestions.map(q => ({
+    question: q.question.trim(),
+    options: q.options.map(o => o.trim()),
+    correct: q.correct
+  })).filter(q => q.question && q.options.filter(o=>o).length >= 2);
+  if (!questions.length) return alert('At least one valid question required');
+  const res = await api('addTest', { title, duration, questions, tier: 'Pro' });
+  if (res.success) {
+    alert('✅ Test saved! (Pro users only)');
+    newQuestions = [{ question: '', options: ['', '', '', ''], correct: 0 }];
+    loadAdmin();
+  } else alert('❌ ' + res.error);
+}
+
+async function removeTest(testId) {
+  if (!confirm('Remove this test?')) return;
+  await api('removeTest', { testId });
+  loadAdmin();
+}
+
+async function removeComment(email, noteTitle, message) {
+  if (!confirm('Delete this comment?')) return;
+  await api('removeComment', { email, noteTitle, message });
+  loadAdmin();
+}
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('studyroom_admin');
+  if (saved) {
+    try {
+      adminUser = JSON.parse(saved);
+      api('verifyAdmin', { email: adminUser.email }).then(r => {
+        if (r.ok) enterPanel();
+        else localStorage.removeItem('studyroom_admin');
+      });
+    } catch (e) { localStorage.removeItem('studyroom_admin'); }
+  }
+});
+</script>
+</body>
+  </html>
